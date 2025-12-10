@@ -1,0 +1,53 @@
+command 1:
+npx @react-native-community/cli start --reset-cache
+command 2:
+cd /media/necromancer/B6F8CF63F8CF208B/Iman/Programming/Machine\ Learning/TripLink && export ANDROID_HOME=/home/necromancer/Android/Sdk && export ANDROID_SDK_ROOT=/home/necromancer/Android/Sdk && emulator -avd Medium_Phone_API_36 -no-snapshot-save &
+
+Installing the app on Phone:
+npx react-native run-android
+
+
+Commands to start each component:
+1. Backend Server (FastAPI)
+cd /media/necromancer/B6F8CF63F8CF208B/Iman/Programming/Machine\ Learning/TripLink/backend
+source .venv/bin/activate
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+2. Mobile App (React Native)
+Terminal 1 - Start Metro Bundler:
+cd /media/necromancer/B6F8CF63F8CF208B/Iman/Programming/Machine\ Learning/TripLink/mobile-app/SynvoyMobile
+npx react-native start --reset-cache
+
+Terminal 2 - Start Android Emulator (if not running):
+emulator -avd Medium_Phone_API_36 &
+
+Terminal 3 - Run Android App:
+cd /media/necromancer/B6F8CF63F8CF208B/Iman/Programming/Machine\ Learning/TripLink/mobile-app/SynvoyMobile
+npx react-native run-android
+
+3. Web App (Next.js) - Optional
+cd /media/necromancer/B6F8CF63F8CF208B/Iman/Programming/Machine\ Learning/TripLink/web-app/synvoy-web
+npm run dev
+
+Command to run on your phone:
+cd /media/necromancer/B6F8CF63F8CF208B/Iman/Programming/Machine\ Learning/TripLink/mobile-app/SynvoyMobile
+export ANDROID_SDK_ROOT=/home/necromancer/Android/Sdk
+export ANDROID_HOME=/home/necromancer/Android/Sdk
+npx react-native run-android
+
+Quick check commands:
+Check connected devices:
+export PATH=$PATH:/home/necromancer/Android/Sdk/platform-tools
+adb devices
+
+If you want to run ONLY on your phone (not emulator):
+adb -s R5CWC1Z2WXW shell am start -n com.synvoymobile/.MainActivity
+
+Or specify the device:
+npx react-native run-android --deviceId=R5CWC1Z2WXW
+
+The app should be running on your phone. Ensure:
+Your phone and computer are on the same Wi‑Fi network (for the Metro bundler connection)
+USB debugging is enabled on your phone
+The phone is connected via USB
+If you see connection issues, check that the Metro bundler is running and that your phone can reach your computer's IP on port 8081.
