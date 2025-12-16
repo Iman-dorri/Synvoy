@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 from app.database import get_db
 from app.models.user import User
 from app.schemas.auth import UserCreate, UserLogin, UserResponse, TokenWithUser
@@ -14,8 +15,8 @@ security = HTTPBearer()
 @router.post("/register", response_model=TokenWithUser)
 async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     """Register a new user."""
-    # Check if user already exists
-    existing_user = db.query(User).filter(User.email == user_data.email).first()
+    # Check if user already exists (case-insensitive email comparison)
+    existing_user = db.query(User).filter(func.lower(User.email) == func.lower(user_data.email)).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -64,8 +65,8 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
 @router.post("/login", response_model=TokenWithUser)
 async def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     """Authenticate user and return access token."""
-    # Find user by email
-    user = db.query(User).filter(User.email == user_credentials.email).first()
+    # Find user by email (case-insensitive email comparison)
+    user = db.query(User).filter(func.lower(User.email) == func.lower(user_credentials.email)).first()
     if not user:
         print(f"Login attempt failed: User with email {user_credentials.email} not found")
         raise HTTPException(
