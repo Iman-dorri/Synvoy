@@ -140,7 +140,7 @@ export default function TripChatPage() {
           return fetchedMessages;
         }
         // Deep comparison: check if any message content changed
-        const hasChanges = fetchedMessages.some((msg, idx) => {
+        const hasChanges = fetchedMessages.some((msg: any, idx: number) => {
           const prevMsg = prevMessages[idx];
           if (!prevMsg) return true;
           // Compare IDs and content

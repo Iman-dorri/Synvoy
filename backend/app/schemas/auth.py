@@ -10,7 +10,7 @@ class UserBase(BaseModel):
     phone: Optional[str] = Field(None, max_length=20)
 
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=6, max_length=100)
+    password: str = Field(..., min_length=6, max_length=72)  # Bcrypt limit is 72 bytes
 
 class UserLogin(BaseModel):
     email: EmailStr

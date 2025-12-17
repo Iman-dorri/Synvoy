@@ -82,8 +82,8 @@ async def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
             detail="Incorrect email or password"
         )
     
-    # Check if user is active
-    if user.status != 'active':
+    # Check if user is active or pending verification (allow pending_verification for development)
+    if user.status not in ['active', 'pending_verification']:
         print(f"Login attempt failed: User {user_credentials.email} is not active (status: {user.status})")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

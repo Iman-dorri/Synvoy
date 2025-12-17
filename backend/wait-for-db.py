@@ -10,7 +10,7 @@ from sqlalchemy.exc import OperationalError
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://triplink_user:triplink_secure_password_2024@db:5432/triplink"
+    "postgresql://synvoy_user:synvoy_secure_password_2024@db:5432/synvoy"
 )
 
 max_retries = 30
@@ -22,6 +22,7 @@ for i in range(max_retries):
         engine = create_engine(DATABASE_URL)
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
+        engine.dispose()
         print("Database is ready!")
         sys.exit(0)
     except OperationalError as e:
@@ -33,5 +34,7 @@ for i in range(max_retries):
             sys.exit(1)
     except Exception as e:
         print(f"Unexpected error: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 

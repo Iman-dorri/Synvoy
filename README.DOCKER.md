@@ -52,7 +52,7 @@ The Docker Compose setup includes three services:
 
 ### 1. Database (PostgreSQL)
 - **Container**: `triplink-db`
-- **Port**: 5432 (default)
+- **Port**: 5433 (default, mapped from container port 5432 to avoid conflicts with local PostgreSQL)
 - **Volume**: `postgres_data` (persistent storage)
 - **Health Check**: Automatically checks database readiness
 
@@ -79,7 +79,7 @@ Key environment variables (set in `.env` file):
 | `POSTGRES_USER` | Database username | `triplink_user` |
 | `POSTGRES_PASSWORD` | Database password | `triplink_secure_password_2024` |
 | `POSTGRES_DB` | Database name | `triplink` |
-| `POSTGRES_PORT` | Database port | `5432` |
+| `POSTGRES_PORT` | Database port (host) | `5433` |
 | `BACKEND_PORT` | Backend API port | `8000` |
 | `FRONTEND_PORT` | Frontend port | `3000` |
 | `SECRET_KEY` | JWT secret key | (change in production) |

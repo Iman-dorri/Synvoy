@@ -10,7 +10,7 @@ load_dotenv()
 # Database URL from environment variables
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://triplink_user:triplink_secure_password_2024@localhost:5432/triplink"
+    "postgresql://synvoy_user:synvoy_secure_password_2024@localhost:5432/synvoy"
 )
 
 # Create SQLAlchemy engine

@@ -1,22 +1,48 @@
 import axios from 'axios';
 
 // Base URL for your FastAPI backend
-const BASE_URL = typeof window !== 'undefined' 
-  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000')
-  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000');
+// Dynamically detect the hostname to work from both localhost and network devices
+const getBaseURL = () => {
+  // In browser, always use current window location (ignore build-time env vars)
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    // Always use current hostname - this works from any device on the network
+    return `${protocol}//${hostname}:8000`;
+  }
+  
+  // Server-side fallback (shouldn't be used for API calls)
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+};
 
-// Create axios instance
+// Create axios instance - baseURL will be set dynamically in interceptor
 const api = axios.create({
-  baseURL: BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to add auth token
+// Request interceptor to set baseURL dynamically and add auth token
 api.interceptors.request.use(
   (config) => {
+    // Always set baseURL dynamically on each request (works in browser)
+    // IMPORTANT: In browser, always use window.location - ignore build-time env vars
+    if (typeof window !== 'undefined') {
+      // Always use current window location - this works from any device on the network
+      const hostname = window.location.hostname;
+      const protocol = window.location.protocol;
+      // Force use of current hostname, never use localhost in browser
+      config.baseURL = `${protocol}//${hostname}:8000`;
+      
+      // Log for debugging
+      console.log('[API] Request to:', config.baseURL + (config.url || ''), 'from hostname:', hostname);
+    } else {
+      // Server-side fallback (shouldn't happen for API calls, but just in case)
+      config.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    }
+    
+    // Add auth token
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('auth_token');
       if (token) {
@@ -60,7 +86,9 @@ export const authAPI = {
     } catch (error: any) {
       // Handle network connectivity errors
       if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT' || error.message?.includes('Network Error')) {
-        throw new Error(`Cannot connect to server. Please check:\n1. Backend is running on ${BASE_URL}\n2. Backend is accessible from this network\n3. Firewall allows connections on port 8000`);
+        // Get the actual URL that was attempted from the error config
+        const attemptedUrl = error.config?.baseURL || error.config?.url || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://localhost:8000');
+        throw new Error(`Cannot connect to server. Please check:\n1. Backend is running on ${attemptedUrl}\n2. Backend is accessible from this network\n3. Firewall allows connections on port 8000`);
       }
       
       let errorMessage = 'Registration failed';
@@ -90,7 +118,9 @@ export const authAPI = {
     } catch (error: any) {
       // Handle network connectivity errors
       if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT' || error.message?.includes('Network Error')) {
-        throw new Error(`Cannot connect to server. Please check:\n1. Backend is running on ${BASE_URL}\n2. Backend is accessible from this network\n3. Firewall allows connections on port 8000`);
+        // Get the actual URL that was attempted from the error config
+        const attemptedUrl = error.config?.baseURL || error.config?.url || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://localhost:8000');
+        throw new Error(`Cannot connect to server. Please check:\n1. Backend is running on ${attemptedUrl}\n2. Backend is accessible from this network\n3. Firewall allows connections on port 8000`);
       }
       
       throw new Error(error.response?.data?.detail || error.message || 'Login failed');
@@ -279,7 +309,8 @@ export const tripAPI = {
       return response.data;
     } catch (error: any) {
       if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT' || error.message?.includes('Network Error')) {
-        throw new Error(`Cannot connect to server. Please check:\n1. Backend is running on ${BASE_URL}\n2. Backend is accessible from this network\n3. Firewall allows connections on port 8000`);
+        const apiUrl = getBaseURL();
+        throw new Error(`Cannot connect to server. Please check:\n1. Backend is running on ${apiUrl}\n2. Backend is accessible from this network\n3. Firewall allows connections on port 8000`);
       }
       throw new Error(error.response?.data?.detail || error.message || 'Failed to create trip');
     }

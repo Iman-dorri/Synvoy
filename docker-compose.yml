@@ -1,34 +1,32 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   db:
     image: postgres:15-alpine
-    container_name: triplink-db
+    container_name: synvoy-db
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-triplink_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-triplink_secure_password_2024}
-      POSTGRES_DB: ${POSTGRES_DB:-triplink}
+      POSTGRES_USER: ${POSTGRES_USER:-synvoy_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-synvoy_secure_password_2024}
+      POSTGRES_DB: ${POSTGRES_DB:-synvoy}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - synvoy_postgres_data:/var/lib/postgresql/data
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "5433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-triplink_user}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-synvoy_user}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - triplink-network
+      - synvoy-network
 
   # Backend API (FastAPI)
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: triplink-backend
+    container_name: synvoy-backend
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-triplink_user}:${POSTGRES_PASSWORD:-triplink_secure_password_2024}@db:5432/${POSTGRES_DB:-triplink}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-synvoy_user}:${POSTGRES_PASSWORD:-synvoy_secure_password_2024}@db:5432/${POSTGRES_DB:-synvoy}
       SECRET_KEY: ${SECRET_KEY:-your-super-secret-jwt-key-change-this-in-production}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
       PORT: 8000
@@ -44,18 +42,21 @@ services:
       - ./backend:/app
     command: >
       sh -c "
+        echo 'Starting backend...' &&
         python wait-for-db.py &&
+        echo 'Database is ready, initializing tables...' &&
         python init_db.py &&
+        echo 'Starting uvicorn server...' &&
         uvicorn main:app --host 0.0.0.0 --port 8000
       "
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     networks:
-      - triplink-network
+      - synvoy-network
     restart: unless-stopped
 
   # Frontend (Next.js)
@@ -65,7 +66,7 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
-    container_name: triplink-frontend
+    container_name: synvoy-frontend
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
       NODE_ENV: production
@@ -75,14 +76,14 @@ services:
       backend:
         condition: service_healthy
     networks:
-      - triplink-network
+      - synvoy-network
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  synvoy_postgres_data:
     driver: local
 
 networks:
-  triplink-network:
+  synvoy-network:
     driver: bridge
 

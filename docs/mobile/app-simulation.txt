@@ -63,6 +63,38 @@ cp docker-compose.env.example .env
 
 # 3. Start everything
 docker compose up -d
+or
+sudo docker compose up -d
+
+Useful commands
+# Stop all services
+sudo docker compose stop
+
+# Start services
+sudo docker compose start
+
+# Stop and remove containers
+sudo docker compose down
+
+# Stop, remove containers, and delete volumes (⚠️ deletes database)
+sudo docker compose down -v
+
+# Rebuild after code changes
+sudo docker compose build
+sudo docker compose up -d
+
+# View logs
+sudo docker compose logs -f
+
+# Stop services
+sudo docker compose stop
+
+# Restart services
+sudo docker compose restart
+
+# View specific service logs
+sudo docker compose logs -f backend
+sudo docker compose logs -f frontend
 
 # Or use the quick start script
 ./docker-start.sh
