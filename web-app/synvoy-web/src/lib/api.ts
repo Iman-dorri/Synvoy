@@ -29,11 +29,20 @@ api.interceptors.request.use(
     // Always set baseURL dynamically on each request (works in browser)
     // IMPORTANT: In browser, always use window.location - ignore build-time env vars
     if (typeof window !== 'undefined') {
-      // Always use current window location - this works from any device on the network
+      // Check if we're on the production domain (use /api path) or localhost (use :8000)
       const hostname = window.location.hostname;
       const protocol = window.location.protocol;
-      // Force use of current hostname, never use localhost in browser
-      config.baseURL = `${protocol}//${hostname}:8000`;
+      const port = window.location.port;
+      
+      // If on production domain (synvoy.com), use /api path through nginx
+      // Otherwise (localhost or IP), use direct backend port
+      if (hostname.includes('synvoy.com')) {
+        // Production: use /api path through nginx
+        config.baseURL = `${protocol}//${hostname}/api`;
+      } else {
+        // Development/local: use direct backend port
+        config.baseURL = `${protocol}//${hostname}:8000`;
+      }
       
       // Log for debugging
       console.log('[API] Request to:', config.baseURL + (config.url || ''), 'from hostname:', hostname);

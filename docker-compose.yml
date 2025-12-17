@@ -33,8 +33,9 @@ services:
       HOST: 0.0.0.0
       DEBUG: ${DEBUG:-True}
       ENVIRONMENT: ${ENVIRONMENT:-production}
-    ports:
-      - "${BACKEND_PORT:-8000}:8000"
+    # Ports exposed only for internal nginx access (remove if not needed for debugging)
+    expose:
+      - "8000"
     depends_on:
       db:
         condition: service_healthy
@@ -65,13 +66,14 @@ services:
       context: ./web-app/synvoy-web
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://www.synvoy.com/api}
     container_name: synvoy-frontend
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://www.synvoy.com/api}
       NODE_ENV: production
-    ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+    # Ports exposed only for internal nginx access (remove if not needed for debugging)
+    expose:
+      - "3000"
     depends_on:
       backend:
         condition: service_healthy
@@ -79,8 +81,32 @@ services:
       - synvoy-network
     restart: unless-stopped
 
+  # Nginx Reverse Proxy
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: synvoy-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certbot_data:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - synvoy-network
+    restart: unless-stopped
+
 volumes:
   synvoy_postgres_data:
+    driver: local
+  certbot_data:
+    driver: local
+  certbot_www:
     driver: local
 
 networks:
