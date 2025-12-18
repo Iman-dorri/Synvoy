@@ -73,14 +73,14 @@ export default function UserSearchPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Navigation */}
       <nav className="bg-white/90 backdrop-blur-xl border-b border-white/20 sticky top-0 z-50 shadow-lg shadow-blue-900/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <Link href="/dashboard" className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-2xl">🌍</span>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex justify-between items-center h-16 sm:h-20 gap-2">
+            <Link href="/dashboard" className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg">
+                <span className="text-xl sm:text-2xl">🌍</span>
               </div>
               <div>
-                <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">Synvoy</span>
+                <span className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">Synvoy</span>
               </div>
             </Link>
             <Link
@@ -90,31 +90,32 @@ export default function UserSearchPage() {
               <svg className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Back to Dashboard
+              <span className="hidden sm:inline">Back to Dashboard</span>
+              <span className="sm:hidden">Back</span>
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Find Users</h1>
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8 lg:py-12">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 sm:mb-6 lg:mb-8">Find Users</h1>
 
         {/* Search Bar */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg mb-6">
-          <div className="flex gap-4">
+        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="Search by name or email..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
               onClick={handleSearch}
               disabled={loading}
-              className="px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
+              className="w-full sm:w-auto px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -143,21 +144,21 @@ export default function UserSearchPage() {
         )}
 
         {/* Search Results */}
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {searchResults.length > 0 ? (
             searchResults.map((result) => (
               <div
                 key={result.id}
-                className="bg-white rounded-2xl p-6 shadow-lg flex items-center justify-between"
+                className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4"
               >
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 truncate">
                     {result.first_name} {result.last_name}
                   </h3>
-                  <p className="text-gray-600">{result.email}</p>
-                  {result.phone && <p className="text-gray-500 text-sm">{result.phone}</p>}
+                  <p className="text-sm sm:text-base text-gray-600 truncate">{result.email}</p>
+                  {result.phone && <p className="text-xs sm:text-sm text-gray-500 truncate">{result.phone}</p>}
                   {result.connection_status && (
-                    <span className={`inline-block mt-2 px-3 py-1 rounded-full text-sm font-medium ${
+                    <span className={`inline-block mt-2 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium ${
                       result.connection_status === 'accepted'
                         ? 'bg-green-100 text-green-800'
                         : result.connection_status === 'pending'
@@ -168,32 +169,32 @@ export default function UserSearchPage() {
                     </span>
                   )}
                 </div>
-                <div>
+                <div className="w-full sm:w-auto">
                   {!result.connection_status ? (
                     <button
                       onClick={() => handleSendRequest(result.id)}
                       disabled={sendingRequest === result.id}
-                      className="px-5 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
+                      className="w-full sm:w-auto px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-1.5 sm:gap-2"
                     >
                       {sendingRequest === result.id ? (
                         <>
-                          <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <svg className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          Sending...
+                          <span>Sending...</span>
                         </>
                       ) : (
                         <>
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                           </svg>
-                          Connect
+                          <span>Connect</span>
                         </>
                       )}
                     </button>
                   ) : (
-                    <span className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold">
+                    <span className="w-full sm:w-auto inline-block px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 text-xs sm:text-sm md:text-base bg-gray-200 text-gray-700 rounded-xl font-semibold text-center">
                       {result.connection_status === 'accepted' ? 'Connected' : 'Request Sent'}
                     </span>
                   )}
@@ -201,8 +202,8 @@ export default function UserSearchPage() {
               </div>
             ))
           ) : searchQuery && !loading ? (
-            <div className="bg-white rounded-2xl p-12 text-center shadow-lg">
-              <p className="text-gray-600">No users found. Try a different search term.</p>
+            <div className="bg-white rounded-xl sm:rounded-2xl p-8 sm:p-12 text-center shadow-lg">
+              <p className="text-sm sm:text-base text-gray-600">No users found. Try a different search term.</p>
             </div>
           ) : null}
         </div>
