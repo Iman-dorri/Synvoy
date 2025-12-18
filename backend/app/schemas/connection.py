@@ -37,10 +37,9 @@ class ConnectionUpdate(BaseModel):
 
 class UserSearchResponse(BaseModel):
     id: str
-    email: str
+    username: str
     first_name: str
     last_name: str
-    phone: Optional[str] = None
     avatar_url: Optional[str] = None
     connection_status: Optional[ConnectionStatus] = None  # Current connection status with requesting user
     

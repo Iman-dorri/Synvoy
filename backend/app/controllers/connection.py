@@ -18,19 +18,20 @@ router = APIRouter(prefix="/connections", tags=["connections"])
 
 @router.get("/search", response_model=List[UserSearchResponse])
 async def search_users(
-    query: str = Query(..., min_length=1, description="Search by email, first name, or last name"),
+    query: str = Query(..., min_length=1, description="Search by username, first name, or last name"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Search for users by email, first name, or last name."""
+    """Search for users by username, first name, or last name."""
     if not query:
         return []
     
     # Search users (excluding current user)
+    # Search by username, first name, or last name (case-insensitive)
     users = db.query(User).filter(
         User.id != current_user.id,
         or_(
-            User.email.ilike(f"%{query}%"),
+            User.username.ilike(f"%{query}%"),
             User.first_name.ilike(f"%{query}%"),
             User.last_name.ilike(f"%{query}%")
         )
@@ -62,10 +63,9 @@ async def search_users(
         
         result.append(UserSearchResponse(
             id=str(user.id),
-            email=user.email,
+            username=user.username,
             first_name=user.first_name,
             last_name=user.last_name,
-            phone=user.phone,
             avatar_url=user.avatar_url,
             connection_status=connection_status
         ))

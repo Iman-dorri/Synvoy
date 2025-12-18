@@ -109,7 +109,7 @@ export default function UserSearchPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Search by name or email..."
+              placeholder="Search by username, first name, or last name..."
               className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
@@ -155,8 +155,7 @@ export default function UserSearchPage() {
                   <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 truncate">
                     {result.first_name} {result.last_name}
                   </h3>
-                  <p className="text-sm sm:text-base text-gray-600 truncate">{result.email}</p>
-                  {result.phone && <p className="text-xs sm:text-sm text-gray-500 truncate">{result.phone}</p>}
+                  <p className="text-sm sm:text-base text-gray-600 truncate">@{result.username}</p>
                   {result.connection_status && (
                     <span className={`inline-block mt-2 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium ${
                       result.connection_status === 'accepted'

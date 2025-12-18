@@ -106,3 +106,32 @@ sudo docker compose down
 # Or if that doesn't work, remove them individually:
 sudo docker stop synvoy-db synvoy-backend synvoy-frontend synvoy-nginx
 sudo docker rm synvoy-db synvoy-backend synvoy-frontend synvoy-nginx
+
+After changes in frontend on server:
+cd ~/Synvoy
+
+# Pull the latest changes (if you haven't already)
+git pull origin main
+
+# Rebuild the frontend container (to pick up the new code)
+docker-compose build frontend
+
+# Restart the frontend container
+docker-compose up -d frontend
+
+# Optional: Restart all containers to ensure everything is in sync
+# docker-compose restart
+
+(if not worked)
+cd ~/Synvoy
+
+# Stop and remove the frontend container
+docker-compose stop frontend
+docker-compose rm -f frontend
+
+# Remove the old frontend image (optional but recommended)
+docker rmi synvoy_frontend:latest
+
+# Rebuild and start the frontend
+docker-compose build frontend
+docker-compose up -d frontend
