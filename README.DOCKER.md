@@ -1,6 +1,6 @@
 # Docker Setup Guide
 
-This guide explains how to run the TripLink application using Docker Compose.
+This guide explains how to run the Synvoy application using Docker Compose.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ This guide explains how to run the TripLink application using Docker Compose.
 1. **Clone the repository** (if you haven't already):
    ```bash
    git clone <your-repo-url>
-   cd TripLink
+   cd Synvoy
    ```
 
 2. **Set up environment variables**:
@@ -51,13 +51,13 @@ This guide explains how to run the TripLink application using Docker Compose.
 The Docker Compose setup includes three services:
 
 ### 1. Database (PostgreSQL)
-- **Container**: `triplink-db`
+- **Container**: `synvoy-db`
 - **Port**: 5433 (default, mapped from container port 5432 to avoid conflicts with local PostgreSQL)
 - **Volume**: `postgres_data` (persistent storage)
 - **Health Check**: Automatically checks database readiness
 
 ### 2. Backend (FastAPI)
-- **Container**: `triplink-backend`
+- **Container**: `synvoy-backend`
 - **Port**: 8000 (default)
 - **Endpoints**:
   - API: `http://localhost:8000`
@@ -66,7 +66,7 @@ The Docker Compose setup includes three services:
 - **Auto-initialization**: Automatically creates database tables on first start
 
 ### 3. Frontend (Next.js)
-- **Container**: `triplink-frontend`
+- **Container**: `synvoy-frontend`
 - **Port**: 3000 (default)
 - **URL**: `http://localhost:3000`
 
@@ -76,9 +76,9 @@ Key environment variables (set in `.env` file):
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `POSTGRES_USER` | Database username | `triplink_user` |
-| `POSTGRES_PASSWORD` | Database password | `triplink_secure_password_2024` |
-| `POSTGRES_DB` | Database name | `triplink` |
+| `POSTGRES_USER` | Database username | `synvoy_user` |
+| `POSTGRES_PASSWORD` | Database password | `synvoy_secure_password_2024` |
+| `POSTGRES_DB` | Database name | `synvoy` |
 | `POSTGRES_PORT` | Database port (host) | `5433` |
 | `BACKEND_PORT` | Backend API port | `8000` |
 | `FRONTEND_PORT` | Frontend port | `3000` |
@@ -137,7 +137,7 @@ docker-compose logs -f backend
 docker-compose exec backend sh
 
 # Database shell
-docker-compose exec db psql -U triplink_user -d triplink
+docker-compose exec db psql -U synvoy_user -d synvoy
 
 # Frontend shell
 docker-compose exec frontend sh
@@ -152,17 +152,17 @@ docker-compose restart backend
 
 ### Access Database
 ```bash
-docker-compose exec db psql -U triplink_user -d triplink
+docker-compose exec db psql -U synvoy_user -d synvoy
 ```
 
 ### Backup Database
 ```bash
-docker-compose exec db pg_dump -U triplink_user triplink > backup.sql
+docker-compose exec db pg_dump -U synvoy_user synvoy > backup.sql
 ```
 
 ### Restore Database
 ```bash
-docker-compose exec -T db psql -U triplink_user triplink < backup.sql
+docker-compose exec -T db psql -U synvoy_user synvoy < backup.sql
 ```
 
 ### Reset Database (⚠️ deletes all data)
@@ -191,7 +191,7 @@ If you want to run the backend locally but use the Docker database:
 
 2. Update your local `.env` file:
    ```
-   DATABASE_URL=postgresql://triplink_user:triplink_secure_password_2024@localhost:5432/triplink
+   DATABASE_URL=postgresql://synvoy_user:synvoy_secure_password_2024@localhost:5432/synvoy
    ```
 
 3. Run backend locally:
@@ -264,7 +264,7 @@ docker-compose up -d
 
 ## Network Configuration
 
-All services are on the `triplink-network` bridge network. Services can communicate using their service names:
+All services are on the `synvoy-network` bridge network. Services can communicate using their service names:
 - Backend → Database: `db:5432`
 - Frontend → Backend: Use `NEXT_PUBLIC_API_URL` (external URL for browser)
 

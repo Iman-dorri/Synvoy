@@ -1,4 +1,4 @@
-# TripLink - Technical Specifications
+# Synvoy - Technical Specifications
 ## Detailed Technical Implementation Guide
 
 ---
@@ -615,7 +615,7 @@ export class AIService {
   }
 
   private buildSystemPrompt(context: any): string {
-    return `You are TripLink, a helpful travel and shopping assistant. 
+    return `You are Synvoy, a helpful travel and shopping assistant. 
     You help users plan trips, find deals, and make smart purchasing decisions.
     
     User context: ${JSON.stringify(context)}

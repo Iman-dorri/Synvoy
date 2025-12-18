@@ -1,11 +1,11 @@
-# TripLink - Project Setup Guide
+# Synvoy - Project Setup Guide
 ## Step-by-Step Development Environment Setup
 
 ---
 
 ## Prerequisites
 
-Before starting the TripLink project, ensure you have the following installed:
+Before starting the Synvoy project, ensure you have the following installed:
 
 ### Required Software
 - **Node.js** (v18 or higher)
@@ -28,11 +28,11 @@ Before starting the TripLink project, ensure you have the following installed:
 ### 1.1 Create Project Directory
 ```bash
 # Navigate to your workspace
-cd /media/necromancer/B6F8CF63F8CF208B/Iman/Programming/Machine\ Learning/TripLink
+cd /media/necromancer/B6F8CF63F8CF208B/Iman/Programming/Machine\ Learning/Synvoy
 
 # Create project structure
-mkdir -p TripLink/{mobile-app,web-app,backend,shared,docs,scripts,tests}
-cd TripLink
+mkdir -p Synvoy/{mobile-app,web-app,backend,shared,docs,scripts,tests}
+cd Synvoy
 ```
 
 ### 1.2 Initialize Git Repository
@@ -694,7 +694,7 @@ export const LoginScreen: React.FC = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome to TripLink</Text>
+        <Text style={styles.title}>Welcome to Synvoy</Text>
         <Text style={styles.subtitle}>Sign in to your account</Text>
         
         <TextInput
@@ -975,7 +975,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Welcome to TripLink
+          Welcome to Synvoy
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Sign in to your account
@@ -1403,7 +1403,7 @@ npm run dev
 
 ## Conclusion
 
-You now have a complete development environment set up for TripLink! The project includes:
+You now have a complete development environment set up for Synvoy! The project includes:
 
 - ✅ **Backend API** with Express.js and Prisma
 - ✅ **Mobile App** with React Native

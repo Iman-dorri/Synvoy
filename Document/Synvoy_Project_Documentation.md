@@ -1,4 +1,4 @@
-# TripLink - Smart Travel & Shopping Platform
+# Synvoy - Smart Travel & Shopping Platform
 ## Complete Project Documentation
 
 ---
@@ -19,7 +19,7 @@
 
 ## Project Overview
 
-**TripLink** is a comprehensive smart platform that combines travel planning, price monitoring, and social connectivity. The application serves as a personal travel and shopping assistant that helps users find the best deals, plan trips collaboratively, and make informed purchasing decisions through AI-powered recommendations.
+**Synvoy** is a comprehensive smart platform that combines travel planning, price monitoring, and social connectivity. The application serves as a personal travel and shopping assistant that helps users find the best deals, plan trips collaboratively, and make informed purchasing decisions through AI-powered recommendations.
 
 ### Vision Statement
 To become the ultimate smart companion for travelers and shoppers, connecting people through shared interests while optimizing their spending through intelligent price monitoring and AI assistance.
@@ -31,7 +31,7 @@ Empower users to make smarter travel and shopping decisions by providing real-ti
 
 ## Application Name & Branding
 
-### Name: **TripLink**
+### Name: **Synvoy**
 
 **Rationale:**
 - **Simple & Catchy**: Easy to remember and pronounce
@@ -352,7 +352,7 @@ Empower users to make smarter travel and shopping decisions by providing real-ti
 ## Project Structure
 
 ```
-TripLink/
+Synvoy/
 ├── mobile-app/                 # React Native Android app
 │   ├── src/
 │   │   ├── components/         # Reusable UI components
@@ -471,9 +471,9 @@ TripLink/
 
 ## Conclusion
 
-TripLink represents a unique opportunity to create a comprehensive platform that combines travel planning, smart shopping, and social connectivity. The phased approach ensures steady development while allowing for user feedback and iterative improvements.
+Synvoy represents a unique opportunity to create a comprehensive platform that combines travel planning, smart shopping, and social connectivity. The phased approach ensures steady development while allowing for user feedback and iterative improvements.
 
-The combination of AI assistance, social features, and intelligent price monitoring positions TripLink as a valuable tool for modern travelers and shoppers. The multiple revenue streams provide a sustainable business model for long-term growth.
+The combination of AI assistance, social features, and intelligent price monitoring positions Synvoy as a valuable tool for modern travelers and shoppers. The multiple revenue streams provide a sustainable business model for long-term growth.
 
 **Key Success Factors:**
 - User-centric design and development

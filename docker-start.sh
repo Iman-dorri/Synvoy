@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Docker Quick Start Script for TripLink
+# Docker Quick Start Script for Synvoy
 
 set -e
 
-echo "🚀 Starting TripLink with Docker Compose..."
+echo "🚀 Starting Synvoy with Docker Compose..."
 
 # Check if .env file exists
 if [ ! -f .env ]; then
@@ -43,7 +43,7 @@ echo "📊 Service Status:"
 docker compose ps
 
 echo ""
-echo "✅ TripLink is starting up!"
+echo "✅ Synvoy is starting up!"
 echo ""
 echo "🌐 Services will be available at:"
 echo "   - Frontend: http://localhost:3000"

@@ -1,10 +1,10 @@
-# TripLink - Project Documentation Overview
+# Synvoy - Project Documentation Overview
 
-Welcome to the TripLink project documentation! This comprehensive guide will help you understand the project structure, business plan, technical specifications, and how to get started with development.
+Welcome to the Synvoy project documentation! This comprehensive guide will help you understand the project structure, business plan, technical specifications, and how to get started with development.
 
 ## 📋 Project Overview
 
-**TripLink** is a revolutionary smart travel and shopping platform that combines AI-powered price monitoring, social connectivity, and collaborative planning. Our mission is to become the ultimate companion for modern travelers and smart shoppers, helping them save money while building meaningful connections.
+**Synvoy** is a revolutionary smart travel and shopping platform that combines AI-powered price monitoring, social connectivity, and collaborative planning. Our mission is to become the ultimate companion for modern travelers and smart shoppers, helping them save money while building meaningful connections.
 
 ### 🎯 Key Features
 - **Smart Price Monitoring**: AI-driven price tracking for flights, hotels, and shopping items
@@ -14,7 +14,7 @@ Welcome to the TripLink project documentation! This comprehensive guide will hel
 
 ## 📚 Documentation Structure
 
-### 1. [TripLink Project Documentation](./TripLink_Project_Documentation.md)
+### 1. [Synvoy Project Documentation](./Synvoy_Project_Documentation.md)
 **Complete project overview and specifications**
 - Project vision and mission
 - Application name and branding
@@ -69,19 +69,19 @@ Welcome to the TripLink project documentation! This comprehensive guide will hel
 4. **Check the [Business Plan](./Business_Plan.md)** to understand the project goals
 
 ### For Stakeholders
-1. **Start with [TripLink Project Documentation](./TripLink_Project_Documentation.md)** for a complete overview
+1. **Start with [Synvoy Project Documentation](./Synvoy_Project_Documentation.md)** for a complete overview
 2. **Review the [Business Plan](./Business_Plan.md)** for financial projections and strategy
 3. **Check the [Development Roadmap](./Development_Roadmap.md)** for timeline and milestones
 
 ### For Investors
 1. **Focus on [Business Plan](./Business_Plan.md)** for market analysis and financial projections
-2. **Review [TripLink Project Documentation](./TripLink_Project_Documentation.md)** for competitive advantages
+2. **Review [Synvoy Project Documentation](./Synvoy_Project_Documentation.md)** for competitive advantages
 3. **Check [Development Roadmap](./Development_Roadmap.md)** for execution timeline
 
 ## 🏗️ Project Architecture
 
 ```
-TripLink/
+Synvoy/
 ├── mobile-app/                 # React Native Android app
 ├── web-app/                   # React web application
 ├── backend/                   # Node.js API server
@@ -93,7 +93,7 @@ TripLink/
 
 ## 🎨 Brand Identity
 
-### Name: **TripLink**
+### Name: **Synvoy**
 - **Tagline**: "Connect. Discover. Save."
 - **Primary Colors**: Deep Blue (#1E3A8A), Teal (#0D9488), Orange (#F97316)
 - **Personality**: Smart, friendly, reliable, adventurous
@@ -231,7 +231,7 @@ TripLink/
 
 ## 📝 Conclusion
 
-TripLink represents a unique opportunity to disrupt the travel and shopping industries by combining AI-powered intelligence, social connectivity, and comprehensive price monitoring. The phased approach ensures steady development while allowing for user feedback and iterative improvements.
+Synvoy represents a unique opportunity to disrupt the travel and shopping industries by combining AI-powered intelligence, social connectivity, and comprehensive price monitoring. The phased approach ensures steady development while allowing for user feedback and iterative improvements.
 
 **Key Success Factors**:
 - User-centric design and development
@@ -240,7 +240,7 @@ TripLink represents a unique opportunity to disrupt the travel and shopping indu
 - Continuous user feedback integration
 - Scalable infrastructure
 
-This documentation serves as a comprehensive guide for all stakeholders involved in the TripLink project. Regular updates will be made as the project evolves and new requirements emerge.
+This documentation serves as a comprehensive guide for all stakeholders involved in the Synvoy project. Regular updates will be made as the project evolves and new requirements emerge.
 
 ---
 
