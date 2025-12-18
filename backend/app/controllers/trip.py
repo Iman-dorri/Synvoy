@@ -113,6 +113,7 @@ async def get_trips(
             user={
                 "id": str(user.id),
                 "email": user.email,
+                "username": user.username,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
                 "phone": user.phone,
@@ -189,6 +190,7 @@ async def get_trip(
             user={
                 "id": str(user.id),
                 "email": user.email,
+                "username": user.username,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
                 "phone": user.phone,
@@ -277,6 +279,7 @@ async def update_trip(
             user={
                 "id": str(user.id),
                 "email": user.email,
+                "username": user.username,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
                 "phone": user.phone,
@@ -395,6 +398,7 @@ async def invite_users_to_trip(
             user={
                 "id": str(user.id),
                 "email": user.email,
+                "username": user.username,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
                 "phone": user.phone,

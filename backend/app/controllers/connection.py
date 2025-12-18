@@ -244,6 +244,7 @@ async def get_connections(
             connected_user={
                 "id": str(other_user.id),
                 "email": other_user.email,
+                "username": other_user.username,
                 "first_name": other_user.first_name,
                 "last_name": other_user.last_name,
                 "phone": other_user.phone,

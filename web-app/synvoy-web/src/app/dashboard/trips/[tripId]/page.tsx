@@ -254,7 +254,7 @@ export default function TripDetailPage() {
                         {participant.user?.first_name} {participant.user?.last_name}
                         {participant.role === 'creator' && ' (Creator)'}
                       </p>
-                      <p className="text-xs sm:text-sm text-gray-600 truncate">{participant.user?.email}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 truncate">@{participant.user?.username}</p>
                     </div>
                     <div className="flex gap-2 flex-wrap">
                       {participant.user_id !== user.id && (
@@ -297,7 +297,7 @@ export default function TripDetailPage() {
                       <p className="text-sm sm:text-base font-medium text-gray-900 truncate">
                         {participant.user?.first_name} {participant.user?.last_name}
                       </p>
-                      <p className="text-xs sm:text-sm text-gray-600 truncate">{participant.user?.email}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 truncate">@{participant.user?.username}</p>
                     </div>
                     <div className="flex gap-2 flex-wrap">
                       {participant.user_id === user.id && participant.status === 'pending' && (
@@ -369,7 +369,7 @@ export default function TripDetailPage() {
                         <p className="text-sm sm:text-base font-medium text-gray-900 truncate">
                           {otherUser.first_name} {otherUser.last_name}
                         </p>
-                        <p className="text-xs sm:text-sm text-gray-600 truncate">{otherUser.email}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 truncate">@{otherUser.username}</p>
                       </div>
                     </label>
                   );

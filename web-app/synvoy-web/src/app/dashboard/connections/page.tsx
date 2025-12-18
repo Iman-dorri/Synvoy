@@ -163,7 +163,7 @@ export default function ConnectionsPage() {
                     <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 truncate">
                       {otherUser?.first_name} {otherUser?.last_name}
                     </h3>
-                    <p className="text-sm sm:text-base text-gray-600 truncate">{otherUser?.email}</p>
+                    <p className="text-sm sm:text-base text-gray-600 truncate">@{otherUser?.username}</p>
                     <span className={`inline-block mt-2 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium ${
                       connection.status === 'accepted'
                         ? 'bg-green-100 text-green-800'
