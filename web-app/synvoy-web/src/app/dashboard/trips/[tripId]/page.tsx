@@ -91,6 +91,28 @@ export default function TripDetailPage() {
     }
   };
 
+  const handleDeleteTrip = async () => {
+    if (!confirm('Are you sure you want to delete this trip? This action cannot be undone.')) return;
+    
+    try {
+      await tripAPI.deleteTrip(tripId);
+      router.push('/dashboard/trips');
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete trip');
+    }
+  };
+
+  const handleRemoveParticipant = async (participantId: string, participantName: string) => {
+    if (!confirm(`Are you sure you want to remove ${participantName} from this trip?`)) return;
+    
+    try {
+      await tripAPI.removeParticipant(tripId, participantId);
+      await fetchTrip();
+    } catch (err: any) {
+      setError(err.message || 'Failed to remove participant');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -180,14 +202,27 @@ export default function TripDetailPage() {
           </div>
           
           {/* Actions */}
-          {currentParticipant?.status === 'accepted' && (
-            <Link
-              href={`/dashboard/trips/${tripId}/chat`}
-              className="inline-block w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-all text-center"
-            >
-              💬 Open Group Chat
-            </Link>
-          )}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            {currentParticipant?.status === 'accepted' && (
+              <Link
+                href={`/dashboard/trips/${tripId}/chat`}
+                className="inline-block w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-all text-center"
+              >
+                💬 Open Group Chat
+              </Link>
+            )}
+            {isCreator && (
+              <button
+                onClick={handleDeleteTrip}
+                className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base font-semibold text-white bg-gradient-to-r from-red-600 to-pink-600 rounded-lg sm:rounded-xl hover:from-red-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete Trip
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Participants */}
@@ -221,17 +256,30 @@ export default function TripDetailPage() {
                       </p>
                       <p className="text-xs sm:text-sm text-gray-600 truncate">{participant.user?.email}</p>
                     </div>
-                    {participant.user_id === user.id && (
-                      <Link
-                        href={`/dashboard/trips/${tripId}/chat`}
-                        className="w-full sm:w-auto px-3 sm:px-4 md:px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                      >
-                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        Chat
-                      </Link>
-                    )}
+                    <div className="flex gap-2 flex-wrap">
+                      {participant.user_id !== user.id && (
+                        <Link
+                          href={`/dashboard/chat/${participant.user_id}`}
+                          className="w-full sm:w-auto px-3 sm:px-4 md:px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          Chat
+                        </Link>
+                      )}
+                      {isCreator && participant.role !== 'creator' && (
+                        <button
+                          onClick={() => handleRemoveParticipant(participant.id, `${participant.user?.first_name} ${participant.user?.last_name}`)}
+                          className="w-full sm:w-auto px-3 sm:px-4 md:px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-red-600 to-pink-600 rounded-xl hover:from-red-700 hover:to-pink-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Remove
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -251,17 +299,30 @@ export default function TripDetailPage() {
                       </p>
                       <p className="text-xs sm:text-sm text-gray-600 truncate">{participant.user?.email}</p>
                     </div>
-                    {participant.user_id === user.id && participant.status === 'pending' && (
-                      <button
-                        onClick={() => handleAcceptInvitation(participant.id)}
-                        className="w-full sm:w-auto px-3 sm:px-4 md:px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                      >
-                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        Accept
-                      </button>
-                    )}
+                    <div className="flex gap-2 flex-wrap">
+                      {participant.user_id === user.id && participant.status === 'pending' && (
+                        <button
+                          onClick={() => handleAcceptInvitation(participant.id)}
+                          className="w-full sm:w-auto px-3 sm:px-4 md:px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Accept
+                        </button>
+                      )}
+                      {isCreator && participant.role !== 'creator' && (
+                        <button
+                          onClick={() => handleRemoveParticipant(participant.id, `${participant.user?.first_name} ${participant.user?.last_name}`)}
+                          className="w-full sm:w-auto px-3 sm:px-4 md:px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-red-600 to-pink-600 rounded-xl hover:from-red-700 hover:to-pink-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Remove
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

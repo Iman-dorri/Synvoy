@@ -477,6 +477,16 @@ export const tripAPI = {
       throw new Error(error.response?.data?.detail || error.message || 'Failed to delete trip');
     }
   },
+
+  // Remove a participant from a trip
+  removeParticipant: async (tripId: string, participantId: string) => {
+    try {
+      const response = await api.delete(`/trips/${tripId}/participants/${participantId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || error.message || 'Failed to remove participant');
+    }
+  },
 };
 
 export default api;

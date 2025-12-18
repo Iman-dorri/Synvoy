@@ -502,3 +502,60 @@ async def delete_trip(
     
     return {"message": "Trip deleted successfully"}
 
+@router.delete("/{trip_id}/participants/{participant_id}")
+async def remove_participant(
+    trip_id: str,
+    participant_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Remove a participant from a trip (only creator can remove participants)."""
+    try:
+        trip_uuid = UUIDType(trip_id)
+        participant_uuid = UUIDType(participant_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid trip ID or participant ID format"
+        )
+    
+    trip = db.query(Trip).filter(Trip.id == trip_uuid).first()
+    
+    if not trip:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Trip not found"
+        )
+    
+    # Check if user is the creator
+    trip_user_id = str(trip.user_id) if trip.user_id else None
+    current_user_id = str(current_user.id) if current_user.id else None
+    if trip_user_id != current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the trip creator can remove participants"
+        )
+    
+    participant = db.query(TripParticipant).filter(
+        TripParticipant.id == participant_uuid,
+        TripParticipant.trip_id == trip_uuid
+    ).first()
+    
+    if not participant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Participant not found"
+        )
+    
+    # Prevent removing the creator
+    if participant.role == "creator":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot remove the trip creator"
+        )
+    
+    db.delete(participant)
+    db.commit()
+    
+    return {"message": "Participant removed successfully"}
+
