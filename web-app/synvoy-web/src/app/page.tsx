@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import LoginModal from '@/components/auth/LoginModal'
@@ -12,6 +12,27 @@ export default function HomePage() {
   const [showLogin, setShowLogin] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
   const [activeFeature, setActiveFeature] = useState(0)
+  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set())
+  const [visibleFeatures, setVisibleFeatures] = useState<Set<number>>(new Set())
+  const [visibleTestimonials, setVisibleTestimonials] = useState<Set<number>>(new Set())
+  const [animatedStats, setAnimatedStats] = useState({
+    travelers: 0,
+    trips: 0,
+    saved: 0,
+    satisfaction: 0
+  })
+  const [scrolled, setScrolled] = useState(false)
+  const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('down')
+  const [scrollY, setScrollY] = useState(0)
+  const lastScrollY = useRef(0)
+  
+  const statsRef = useRef<HTMLDivElement>(null)
+  const heroRef = useRef<HTMLDivElement>(null)
+  const featuresRef = useRef<HTMLDivElement>(null)
+  const testimonialsRef = useRef<HTMLDivElement>(null)
+  const ctaRef = useRef<HTMLDivElement>(null)
+  const featureRefs = useRef<(HTMLDivElement | null)[]>([])
+  const testimonialRefs = useRef<(HTMLDivElement | null)[]>([])
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -19,6 +40,215 @@ export default function HomePage() {
       router.push('/dashboard')
     }
   }, [user, isLoading, router])
+
+  // Intersection Observer for scroll animations with direction awareness
+  useEffect(() => {
+    // Hero section is visible by default
+    setVisibleSections((prev) => new Set(prev).add('hero'))
+
+    const observerOptions = {
+      threshold: [0, 0.1, 0.5, 1],
+      rootMargin: '0px 0px -100px 0px'
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const sectionId = entry.target.id
+        const isIntersecting = entry.isIntersecting
+        const intersectionRatio = entry.intersectionRatio
+        
+        if (isIntersecting && intersectionRatio > 0.1) {
+          // Element is entering viewport - show it
+          setVisibleSections((prev) => new Set(prev).add(sectionId))
+        } else if (!isIntersecting && scrollDirection === 'down') {
+          // Element is leaving viewport while scrolling down - hide it smoothly
+          setVisibleSections((prev) => {
+            const newSet = new Set(prev)
+            newSet.delete(sectionId)
+            return newSet
+          })
+        } else if (isIntersecting && scrollDirection === 'up' && intersectionRatio > 0.1) {
+          // Element is entering viewport while scrolling up - show it
+          setVisibleSections((prev) => new Set(prev).add(sectionId))
+        }
+      })
+    }, observerOptions)
+
+    const sections = [statsRef, featuresRef, testimonialsRef, ctaRef].filter(Boolean)
+    sections.forEach((ref) => {
+      if (ref.current) {
+        observer.observe(ref.current)
+      }
+    })
+
+    return () => {
+      sections.forEach((ref) => {
+        if (ref.current) {
+          observer.unobserve(ref.current)
+        }
+      })
+    }
+  }, [scrollDirection])
+
+  // Intersection Observer for individual feature cards with direction awareness
+  useEffect(() => {
+    const observerOptions = {
+      threshold: [0, 0.2, 0.5, 1],
+      rootMargin: '0px 0px -50px 0px'
+    }
+
+    const featureObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const index = parseInt(entry.target.getAttribute('data-feature-index') || '0')
+        const isIntersecting = entry.isIntersecting
+        const intersectionRatio = entry.intersectionRatio
+        
+        if (isIntersecting && intersectionRatio > 0.2) {
+          // Card is entering viewport - show it
+          setVisibleFeatures((prev) => new Set(prev).add(index))
+        } else if (!isIntersecting && scrollDirection === 'down') {
+          // Card is leaving viewport while scrolling down - hide it smoothly
+          setVisibleFeatures((prev) => {
+            const newSet = new Set(prev)
+            newSet.delete(index)
+            return newSet
+          })
+        } else if (isIntersecting && scrollDirection === 'up' && intersectionRatio > 0.2) {
+          // Card is entering viewport while scrolling up - show it
+          setVisibleFeatures((prev) => new Set(prev).add(index))
+        }
+      })
+    }, observerOptions)
+
+    // Observe all feature refs
+    featureRefs.current.forEach((ref) => {
+      if (ref) {
+        featureObserver.observe(ref)
+      }
+    })
+
+    return () => {
+      featureRefs.current.forEach((ref) => {
+        if (ref) {
+          featureObserver.unobserve(ref)
+        }
+      })
+    }
+  }, [scrollDirection])
+
+  // Intersection Observer for individual testimonial cards with direction awareness
+  useEffect(() => {
+    const observerOptions = {
+      threshold: [0, 0.2, 0.5, 1],
+      rootMargin: '0px 0px -50px 0px'
+    }
+
+    const testimonialObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const index = parseInt(entry.target.getAttribute('data-testimonial-index') || '0')
+        const isIntersecting = entry.isIntersecting
+        const intersectionRatio = entry.intersectionRatio
+        
+        if (isIntersecting && intersectionRatio > 0.2) {
+          // Card is entering viewport - show it
+          setVisibleTestimonials((prev) => new Set(prev).add(index))
+        } else if (!isIntersecting && scrollDirection === 'down') {
+          // Card is leaving viewport while scrolling down - hide it smoothly
+          setVisibleTestimonials((prev) => {
+            const newSet = new Set(prev)
+            newSet.delete(index)
+            return newSet
+          })
+        } else if (isIntersecting && scrollDirection === 'up' && intersectionRatio > 0.2) {
+          // Card is entering viewport while scrolling up - show it
+          setVisibleTestimonials((prev) => new Set(prev).add(index))
+        }
+      })
+    }, observerOptions)
+
+    // Observe all testimonial refs
+    testimonialRefs.current.forEach((ref) => {
+      if (ref) {
+        testimonialObserver.observe(ref)
+      }
+    })
+
+    return () => {
+      testimonialRefs.current.forEach((ref) => {
+        if (ref) {
+          testimonialObserver.unobserve(ref)
+        }
+      })
+    }
+  }, [scrollDirection])
+
+  // Animate stats counter
+  useEffect(() => {
+    if (!visibleSections.has('stats')) return
+
+    const duration = 2000 // 2 seconds
+    const steps = 60
+    const stepDuration = duration / steps
+
+    const animateValue = (
+      start: number,
+      end: number,
+      callback: (value: number) => void
+    ) => {
+      const increment = (end - start) / steps
+      let current = start
+      let step = 0
+
+      const timer = setInterval(() => {
+        step++
+        current += increment
+        if (step >= steps) {
+          current = end
+          clearInterval(timer)
+        }
+        callback(Math.floor(current))
+      }, stepDuration)
+    }
+
+    animateValue(0, 50000, (val) => setAnimatedStats((prev) => ({ ...prev, travelers: val })))
+    animateValue(0, 200000, (val) => setAnimatedStats((prev) => ({ ...prev, trips: val })))
+    animateValue(0, 5000000, (val) => setAnimatedStats((prev) => ({ ...prev, saved: val })))
+    animateValue(0, 98, (val) => setAnimatedStats((prev) => ({ ...prev, satisfaction: val })))
+  }, [visibleSections])
+
+  // Smooth scroll behavior
+  useEffect(() => {
+    document.documentElement.style.scrollBehavior = 'smooth'
+    return () => {
+      document.documentElement.style.scrollBehavior = 'auto'
+    }
+  }, [])
+
+  // Scroll effect for navigation and scroll direction detection
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      
+      // Update navigation background
+      setScrolled(currentScrollY > 50)
+      
+      // Update scroll position for parallax
+      setScrollY(currentScrollY)
+      
+      // Detect scroll direction
+      if (currentScrollY > lastScrollY.current) {
+        setScrollDirection('down')
+      } else if (currentScrollY < lastScrollY.current) {
+        setScrollDirection('up')
+      }
+      
+      lastScrollY.current = currentScrollY
+    }
+    
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
 
   const features = [
     {
@@ -99,7 +329,9 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Navigation */}
-      <nav className="bg-white/90 backdrop-blur-xl border-b border-white/20 sticky top-0 z-50 shadow-lg shadow-blue-900/5">
+      <nav className={`bg-white/90 backdrop-blur-xl border-b border-white/20 sticky top-0 z-50 shadow-lg shadow-blue-900/5 transition-all duration-300 ${
+        scrolled ? 'bg-white/95 shadow-xl' : ''
+      }`}>
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="flex justify-between items-center h-16 sm:h-20">
             <div className="flex items-center space-x-2 sm:space-x-3">
@@ -137,7 +369,13 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 sm:pt-24 lg:pt-32 pb-12 sm:pb-16 lg:pb-20">
+      <section 
+        ref={heroRef}
+        id="hero"
+        className={`relative overflow-hidden pt-20 sm:pt-24 lg:pt-32 pb-12 sm:pb-16 lg:pb-20 transition-all duration-1000 ${
+          visibleSections.has('hero') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="text-center relative z-10">
             <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm font-medium mb-6 sm:mb-8 shadow-lg">
@@ -192,40 +430,91 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Enhanced Background Elements */}
+        {/* Enhanced Background Elements with Parallax */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-blue-200 to-cyan-200 rounded-full opacity-30 blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-teal-200 to-emerald-200 rounded-full opacity-30 blur-3xl animate-pulse animation-delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full opacity-20 blur-3xl animate-pulse animation-delay-2000"></div>
+          <div 
+            className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-blue-200 to-cyan-200 rounded-full opacity-30 blur-3xl animate-pulse float transition-transform duration-300 ease-out"
+            style={{ 
+              transform: `translateY(${scrollDirection === 'down' ? scrollY * 0.1 : scrollY * 0.05}px)`
+            }}
+          ></div>
+          <div 
+            className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-teal-200 to-emerald-200 rounded-full opacity-30 blur-3xl animate-pulse animation-delay-1000 float transition-transform duration-300"
+            style={{ 
+              animationDelay: '1s',
+              transform: `translateY(${scrollDirection === 'down' ? -scrollY * 0.15 : -scrollY * 0.08}px)`
+            }}
+          ></div>
+          <div 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full opacity-20 blur-3xl animate-pulse animation-delay-2000 float transition-transform duration-300"
+            style={{ 
+              animationDelay: '2s',
+              transform: `translate(-50%, calc(-50% + ${scrollDirection === 'down' ? scrollY * 0.08 : scrollY * 0.04}px))`
+            }}
+          ></div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-white/80 backdrop-blur-sm">
+      <section 
+        ref={statsRef}
+        id="stats"
+        className={`py-20 bg-white/80 backdrop-blur-sm transition-all duration-1000 ${
+          visibleSections.has('stats') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div
-                key={stat.label}
-                className="text-center group cursor-pointer transform hover:scale-105 transition-all duration-300"
-              >
-                <div className={`text-5xl mb-3 ${stat.color} group-hover:scale-110 transition-transform duration-300`}>
-                  {stat.icon}
+            {stats.map((stat, index) => {
+              let displayValue = stat.value
+              if (visibleSections.has('stats')) {
+                if (stat.label === 'Happy Travelers') {
+                  displayValue = `${(animatedStats.travelers / 1000).toFixed(0)}K+`
+                } else if (stat.label === 'Trips Planned') {
+                  displayValue = `${(animatedStats.trips / 1000).toFixed(0)}K+`
+                } else if (stat.label === 'Money Saved') {
+                  displayValue = `$${(animatedStats.saved / 1000000).toFixed(1)}M+`
+                } else if (stat.label === 'Satisfaction Rate') {
+                  displayValue = `${animatedStats.satisfaction}%`
+                }
+              }
+              
+              return (
+                <div
+                  key={stat.label}
+                  className={`text-center group cursor-pointer transform hover:scale-105 transition-all duration-300 ${
+                    visibleSections.has('stats') 
+                      ? 'opacity-100 translate-y-0' 
+                      : 'opacity-0 translate-y-10'
+                  }`}
+                  style={{ transitionDelay: `${index * 100}ms` }}
+                >
+                  <div className={`text-5xl mb-3 ${stat.color} group-hover:scale-110 transition-transform duration-300`}>
+                    {stat.icon}
+                  </div>
+                  <div className={`text-4xl font-bold ${stat.color} mb-2 group-hover:scale-110 transition-transform duration-300`}>
+                    {displayValue}
+                  </div>
+                  <div className="text-gray-600 font-medium">{stat.label}</div>
                 </div>
-                <div className={`text-4xl font-bold ${stat.color} mb-2 group-hover:scale-110 transition-transform duration-300`}>
-                  {stat.value}
-                </div>
-                <div className="text-gray-600 font-medium">{stat.label}</div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 bg-gradient-to-br from-gray-50 to-blue-50">
+      <section 
+        ref={featuresRef}
+        id="features" 
+        className={`py-24 bg-gradient-to-br from-gray-50 to-blue-50 transition-all duration-1000 ${
+          visibleSections.has('features') ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
+          <div className={`text-center mb-20 transition-all duration-1000 ${
+            visibleSections.has('features') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
               Everything You Need for
               <span className="block bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
@@ -242,7 +531,18 @@ export default function HomePage() {
             {features.map((feature, index) => (
               <div
                 key={feature.title}
-                className={`group cursor-pointer transform hover:scale-105 transition-all duration-500 ${feature.bgColor} rounded-3xl p-8 border border-white/50 shadow-xl hover:shadow-2xl backdrop-blur-sm`}
+                ref={(el) => {
+                  featureRefs.current[index] = el
+                }}
+                data-feature-index={index}
+                className={`group cursor-pointer transform hover:scale-105 transition-all duration-700 ${feature.bgColor} rounded-3xl p-8 border border-white/50 shadow-xl hover:shadow-2xl backdrop-blur-sm ${
+                  visibleFeatures.has(index)
+                    ? 'opacity-100 translate-y-0 scale-100'
+                    : 'opacity-0 translate-y-10 scale-95'
+                }`}
+                style={{ 
+                  transitionDelay: visibleFeatures.has(index) ? `${index * 150}ms` : '0ms'
+                }}
                 onMouseEnter={() => setActiveFeature(index)}
               >
                 <div className={`text-6xl mb-6 group-hover:scale-110 transition-transform duration-300`}>
@@ -265,9 +565,17 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-24 bg-white">
+      <section 
+        ref={testimonialsRef}
+        id="testimonials"
+        className={`py-24 bg-white transition-all duration-1000 ${
+          visibleSections.has('testimonials') ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
+          <div className={`text-center mb-20 transition-all duration-1000 ${
+            visibleSections.has('testimonials') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
               Loved by Travelers
               <span className="block text-blue-600">Worldwide</span>
@@ -281,7 +589,18 @@ export default function HomePage() {
             {testimonials.map((testimonial, index) => (
               <div
                 key={testimonial.name}
-                className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-3xl p-8 border border-white/50 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+                ref={(el) => {
+                  testimonialRefs.current[index] = el
+                }}
+                data-testimonial-index={index}
+                className={`bg-gradient-to-br from-gray-50 to-blue-50 rounded-3xl p-8 border border-white/50 shadow-xl hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 ${
+                  visibleTestimonials.has(index)
+                    ? 'opacity-100 translate-y-0 scale-100'
+                    : 'opacity-0 translate-y-10 scale-95'
+                }`}
+                style={{ 
+                  transitionDelay: visibleTestimonials.has(index) ? `${index * 150}ms` : '0ms'
+                }}
               >
                 <div className="flex items-center mb-6">
                   <div className="text-4xl mr-4">{testimonial.avatar}</div>
@@ -305,7 +624,13 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-blue-600 via-cyan-600 to-teal-600 relative overflow-hidden">
+      <section 
+        ref={ctaRef}
+        id="cta"
+        className={`py-24 bg-gradient-to-br from-blue-600 via-cyan-600 to-teal-600 relative overflow-hidden transition-all duration-1000 ${
+          visibleSections.has('cta') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        }`}
+      >
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative z-10 max-w-5xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">

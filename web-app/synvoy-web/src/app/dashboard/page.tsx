@@ -154,11 +154,11 @@ export default function DashboardPage() {
               <span className="text-sm sm:text-base text-gray-700 hidden sm:inline font-medium">Welcome, {user.first_name}!</span>
               <button
                 onClick={handleLogout}
-                className="group px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 hover:border-red-200 hover:text-red-600 transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2"
+                className="group px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 hover:border-red-200 hover:text-red-600 transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2"
               >
                 <span className="hidden sm:inline">Sign Out</span>
-                <span className="sm:hidden">Out</span>
-                <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="sm:hidden">Sign out</span>
+                <svg className="w-4 h-4 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
               </button>
