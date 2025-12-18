@@ -39,40 +39,24 @@ api.interceptors.request.use(
       // ALWAYS force HTTPS for production domain to avoid mixed content errors
       if (hostname.includes('synvoy.com')) {
         // Production: use /api path through nginx, ALWAYS force HTTPS
-        config.baseURL = `https://${hostname}/api`;
+        // CRITICAL: Delete any existing baseURL first to prevent conflicts
+        delete config.baseURL;
         
-        // Ensure URL is properly formatted
-        if (config.url) {
-          config.url = config.url.startsWith('/') ? config.url : '/' + config.url;
-        }
+        // Set the full URL directly to ensure HTTPS
+        const urlPath = config.url || '';
+        const cleanUrl = urlPath.startsWith('/') ? urlPath : '/' + urlPath;
         
-        // CRITICAL: Override any existing baseURL or URL that might be HTTP
-        // Force the full URL to be HTTPS
-        const fullUrl = config.baseURL + (config.url || '');
-        if (fullUrl.includes('http://')) {
-          config.baseURL = config.baseURL.replace('http://', 'https://');
-        }
+        // Construct full HTTPS URL
+        config.url = `https://${hostname}/api${cleanUrl}`;
+        config.baseURL = ''; // Clear baseURL so axios uses the full URL
       } else {
         // Development/local: use direct backend port with current protocol
         config.baseURL = `${currentProtocol}//${hostname}:8000`;
       }
       
-      // Final safety check: if baseURL somehow has http://, replace it with https:// for production
-      if (hostname.includes('synvoy.com')) {
-        if (config.baseURL && config.baseURL.startsWith('http://')) {
-          config.baseURL = config.baseURL.replace('http://', 'https://');
-        }
-        // Also check the full URL
-        const finalUrl = (config.baseURL || '') + (config.url || '');
-        if (finalUrl.startsWith('http://')) {
-          config.baseURL = `https://${hostname}/api`;
-        }
-      }
-      
       // Log for debugging - show what we're actually sending
-      const finalBaseURL = config.baseURL || '';
-      const finalURL = config.url || '';
-      console.log('[API] Request to:', finalBaseURL + finalURL, 'from hostname:', hostname, 'protocol:', currentProtocol);
+      const finalUrl = config.url || (config.baseURL || '') + (config.url || '');
+      console.log('[API] Request to:', finalUrl, 'from hostname:', hostname, 'protocol:', currentProtocol);
     } else {
       // Server-side fallback (shouldn't happen for API calls, but just in case)
       config.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
