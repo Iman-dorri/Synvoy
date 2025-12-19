@@ -24,6 +24,7 @@ export default function HomePage() {
   const [scrolled, setScrolled] = useState(false)
   const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('down')
   const [scrollY, setScrollY] = useState(0)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const lastScrollY = useRef(0)
   
   const statsRef = useRef<HTMLDivElement>(null)
@@ -242,12 +243,17 @@ export default function HomePage() {
         setScrollDirection('up')
       }
       
+      // Close mobile menu on scroll
+      if (mobileMenuOpen) {
+        setMobileMenuOpen(false)
+      }
+      
       lastScrollY.current = currentScrollY
     }
     
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [mobileMenuOpen])
 
 
   const features = [
@@ -343,26 +349,110 @@ export default function HomePage() {
                 <p className="text-[10px] sm:text-xs text-gray-500 -mt-0.5 sm:-mt-1 hidden sm:block">Smart Travel Platform</p>
               </div>
             </div>
+            
+            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
               <a href="#features" className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">Features</a>
               <a href="#pricing" className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">Pricing</a>
-              <a href="#about" className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">About</a>
+              <a href="/about" className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">About</a>
               <a href="#contact" className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">Contact</a>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            
+            {/* Desktop Buttons */}
+            <div className="hidden md:flex items-center space-x-4">
               <button 
                 onClick={() => setShowLogin(true)}
-                className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-xs sm:text-sm lg:text-base border-2 border-blue-600 text-blue-600 rounded-lg sm:rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300 font-semibold shadow-lg hover:shadow-xl whitespace-nowrap"
+                className="px-4 lg:px-6 py-2 lg:py-3 text-sm lg:text-base border-2 border-blue-600 text-blue-600 rounded-lg sm:rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300 font-semibold shadow-lg hover:shadow-xl whitespace-nowrap"
               >
                 Sign In
               </button>
               <button 
                 onClick={() => setShowRegister(true)}
-                className="px-3 sm:px-4 lg:px-8 py-2 sm:py-3 text-xs sm:text-sm lg:text-base bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg sm:rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl whitespace-nowrap"
+                className="px-4 lg:px-8 py-2 lg:py-3 text-sm lg:text-base bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg sm:rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl whitespace-nowrap"
               >
-                <span className="hidden sm:inline">Get Started Free</span>
-                <span className="sm:hidden">Get Started</span>
+                Get Started Free
               </button>
+            </div>
+
+            {/* Mobile Hamburger Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+              aria-label="Toggle menu"
+            >
+              <svg
+                className={`w-6 h-6 transition-transform duration-300 ${mobileMenuOpen ? 'rotate-90' : ''}`}
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                {mobileMenuOpen ? (
+                  <path d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+
+          {/* Mobile Menu */}
+          <div
+            className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+              mobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            }`}
+          >
+            <div className="py-4 space-y-3 border-t border-gray-200 mt-2">
+              <a
+                href="#features"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-2 text-base text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
+              >
+                Features
+              </a>
+              <a
+                href="#pricing"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-2 text-base text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
+              >
+                Pricing
+              </a>
+              <a
+                href="/about"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-2 text-base text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
+              >
+                About
+              </a>
+              <a
+                href="#contact"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-2 text-base text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
+              >
+                Contact
+              </a>
+              <div className="pt-2 space-y-2 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setShowLogin(true)
+                    setMobileMenuOpen(false)
+                  }}
+                  className="w-full px-4 py-2.5 text-base border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all duration-300 font-semibold shadow-lg"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => {
+                    setShowRegister(true)
+                    setMobileMenuOpen(false)
+                  }}
+                  className="w-full px-4 py-2.5 text-base bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 font-semibold shadow-lg"
+                >
+                  Get Started Free
+                </button>
+              </div>
             </div>
           </div>
         </div>
