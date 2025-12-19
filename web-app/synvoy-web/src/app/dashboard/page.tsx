@@ -177,7 +177,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Feature Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 items-stretch">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 items-stretch">
           <Link href="/dashboard/search" className="h-full">
             <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow cursor-pointer border-2 border-transparent hover:border-blue-500 h-full flex flex-col">
               <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">🔍</div>
@@ -230,27 +230,14 @@ export default function DashboardPage() {
               <p className="text-sm sm:text-base text-gray-600 flex-grow">Chat with your connections</p>
             </div>
           </Link>
-        </div>
 
-        {/* User Info Card */}
-        <div className="mt-6 sm:mt-8 lg:mt-12 bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3 sm:mb-4">Account Information</h2>
-          <div className="space-y-2 sm:space-y-3">
-            <div>
-              <span className="text-xs sm:text-sm font-medium text-gray-500">Email:</span>
-              <p className="text-sm sm:text-base text-gray-900 break-words">{user.email}</p>
+          <Link href="/dashboard/profile" className="h-full">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow cursor-pointer border-2 border-transparent hover:border-blue-500 h-full flex flex-col">
+              <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">👤</div>
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1 sm:mb-2">My Profile</h3>
+              <p className="text-sm sm:text-base text-gray-600 flex-grow">View and manage your account information</p>
             </div>
-            <div>
-              <span className="text-xs sm:text-sm font-medium text-gray-500">Status:</span>
-              <p className="text-sm sm:text-base text-gray-900 capitalize">{user.status}</p>
-            </div>
-            {user.phone && (
-              <div>
-                <span className="text-xs sm:text-sm font-medium text-gray-500">Phone:</span>
-                <p className="text-sm sm:text-base text-gray-900">{user.phone}</p>
-              </div>
-            )}
-          </div>
+          </Link>
         </div>
       </div>
     </div>

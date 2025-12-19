@@ -17,7 +17,21 @@ export default function PageTransition({ children }: PageTransitionProps) {
   useEffect(() => {
     // Only trigger transition if pathname actually changed
     if (pathname !== prevPathname) {
-      // Determine direction based on pathname order
+      // Check if either current or previous path is a dashboard route
+      const isDashboardRoute = (path: string) => path.startsWith('/dashboard')
+      const currentIsDashboard = isDashboardRoute(pathname)
+      const prevIsDashboard = isDashboardRoute(prevPathname)
+      
+      // Skip transition for dashboard routes
+      if (currentIsDashboard || prevIsDashboard) {
+        // Update children immediately without transition
+        setDisplayChildren(children)
+        setPrevPathname(pathname)
+        setIsTransitioning(false)
+        return
+      }
+      
+      // Determine direction based on pathname order (only for public pages)
       const paths = ['/', '/about', '/signin', '/register']
       const currentIndex = paths.indexOf(pathname)
       const prevIndex = paths.indexOf(prevPathname)
