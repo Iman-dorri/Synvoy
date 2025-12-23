@@ -383,7 +383,7 @@ export default function HomePage() {
             </div>
 
             {/* Mobile Hamburger Button */}
-            <button
+              <button 
               onClick={(e) => {
                 e.stopPropagation()
                 setMobileMenuOpen(!mobileMenuOpen)
@@ -407,7 +407,7 @@ export default function HomePage() {
                   <path d="M4 6h16M4 12h16M4 18h16" />
                 )}
               </svg>
-            </button>
+              </button>
           </div>
 
           {/* Mobile Menu */}
@@ -610,23 +610,23 @@ export default function HomePage() {
               }
               
               return (
-                <div
-                  key={stat.label}
+              <div
+                key={stat.label}
                   className={`text-center group cursor-pointer transform hover:scale-105 transition-all duration-300 ${
                     visibleSections.has('stats') 
                       ? 'opacity-100 translate-y-0' 
                       : 'opacity-0 translate-y-10'
                   }`}
                   style={{ transitionDelay: `${index * 100}ms` }}
-                >
-                  <div className={`text-5xl mb-3 ${stat.color} group-hover:scale-110 transition-transform duration-300`}>
-                    {stat.icon}
-                  </div>
-                  <div className={`text-4xl font-bold ${stat.color} mb-2 group-hover:scale-110 transition-transform duration-300`}>
-                    {displayValue}
-                  </div>
-                  <div className="text-gray-600 font-medium">{stat.label}</div>
+              >
+                <div className={`text-5xl mb-3 ${stat.color} group-hover:scale-110 transition-transform duration-300`}>
+                  {stat.icon}
                 </div>
+                <div className={`text-4xl font-bold ${stat.color} mb-2 group-hover:scale-110 transition-transform duration-300`}>
+                    {displayValue}
+                </div>
+                <div className="text-gray-600 font-medium">{stat.label}</div>
+              </div>
               )
             })}
           </div>

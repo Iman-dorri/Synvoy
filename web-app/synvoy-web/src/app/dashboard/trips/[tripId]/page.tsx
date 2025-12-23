@@ -203,14 +203,14 @@ export default function TripDetailPage() {
           
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            {currentParticipant?.status === 'accepted' && (
-              <Link
-                href={`/dashboard/trips/${tripId}/chat`}
+          {currentParticipant?.status === 'accepted' && (
+            <Link
+              href={`/dashboard/trips/${tripId}/chat`}
                 className="inline-block w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-all text-center"
-              >
-                💬 Open Group Chat
-              </Link>
-            )}
+            >
+              💬 Open Group Chat
+            </Link>
+          )}
             {isCreator && (
               <button
                 onClick={handleDeleteTrip}
@@ -258,16 +258,16 @@ export default function TripDetailPage() {
                     </div>
                     <div className="flex gap-2 flex-wrap">
                       {participant.user_id !== user.id && (
-                        <Link
+                      <Link
                           href={`/dashboard/chat/${participant.user_id}`}
                           className="w-full sm:w-auto px-3 sm:px-4 md:px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                        >
+                      >
                           <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                          </svg>
-                          Chat
-                        </Link>
-                      )}
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        Chat
+                      </Link>
+                    )}
                       {isCreator && participant.role !== 'creator' && (
                         <button
                           onClick={() => handleRemoveParticipant(participant.id, `${participant.user?.first_name} ${participant.user?.last_name}`)}
@@ -300,17 +300,17 @@ export default function TripDetailPage() {
                       <p className="text-xs sm:text-sm text-gray-600 truncate">@{participant.user?.username}</p>
                     </div>
                     <div className="flex gap-2 flex-wrap">
-                      {participant.user_id === user.id && participant.status === 'pending' && (
-                        <button
-                          onClick={() => handleAcceptInvitation(participant.id)}
+                    {participant.user_id === user.id && participant.status === 'pending' && (
+                      <button
+                        onClick={() => handleAcceptInvitation(participant.id)}
                           className="w-full sm:w-auto px-3 sm:px-4 md:px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                        >
+                      >
                           <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          Accept
-                        </button>
-                      )}
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Accept
+                      </button>
+                    )}
                       {isCreator && participant.role !== 'creator' && (
                         <button
                           onClick={() => handleRemoveParticipant(participant.id, `${participant.user?.first_name} ${participant.user?.last_name}`)}

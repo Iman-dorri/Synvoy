@@ -101,8 +101,60 @@ services:
       - synvoy-network
     restart: unless-stopped
 
+  # PostgreSQL Database for n8n
+  n8n-postgres:
+    image: postgres:15-alpine
+    container_name: synvoy-n8n-postgres
+    environment:
+      POSTGRES_USER: ${N8N_POSTGRES_USER:-n8n_user}
+      POSTGRES_PASSWORD: ${N8N_POSTGRES_PASSWORD:-n8n_secure_password_2024}
+      POSTGRES_DB: ${N8N_POSTGRES_DB:-n8n}
+    volumes:
+      - synvoy_n8n_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${N8N_POSTGRES_USER:-n8n_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - synvoy-network
+    restart: unless-stopped
+
+  # n8n Workflow Automation
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:stable
+    container_name: synvoy-n8n
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: n8n-postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: ${N8N_POSTGRES_DB:-n8n}
+      DB_POSTGRESDB_USER: ${N8N_POSTGRES_USER:-n8n_user}
+      DB_POSTGRESDB_PASSWORD: ${N8N_POSTGRES_PASSWORD:-n8n_secure_password_2024}
+      N8N_BASIC_AUTH_ACTIVE: ${N8N_BASIC_AUTH_ACTIVE:-false}
+      N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER:-}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD:-}
+      N8N_HOST: ${N8N_HOST:-127.0.0.1}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: ${N8N_PROTOCOL:-http}
+      GENERIC_TIMEZONE: ${N8N_TIMEZONE:-UTC}
+    ports:
+      - "127.0.0.1:5678:5678"
+    volumes:
+      - synvoy_n8n_data:/home/node/.n8n
+    depends_on:
+      n8n-postgres:
+        condition: service_healthy
+    networks:
+      - synvoy-network
+    restart: unless-stopped
+
 volumes:
   synvoy_postgres_data:
+    driver: local
+  synvoy_n8n_postgres_data:
+    driver: local
+  synvoy_n8n_data:
     driver: local
   certbot_data:
     driver: local

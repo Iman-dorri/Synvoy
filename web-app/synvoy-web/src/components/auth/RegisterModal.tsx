@@ -103,7 +103,7 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
         className={`fixed bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-out z-[49] ${
           isVisible ? 'opacity-100' : 'opacity-0'
         }`}
-        onClick={onClose}
+          onClick={onClose}
         style={{
           position: 'fixed',
           top: 0,
@@ -160,70 +160,70 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
                 onClick={onClose}
                 className="w-9 h-9 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition-all duration-300 backdrop-blur-sm"
                 aria-label="Close"
-              >
+        >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              </button>
+        </button>
             </div>
-          </div>
+        </div>
 
           {/* Form Content */}
           <div className="px-8 py-8">
             <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
+          {error && (
                 <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg flex items-start space-x-2 animate-shake">
                   <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
                   <p className="text-sm whitespace-pre-line">{error}</p>
-                </div>
-              )}
+            </div>
+          )}
 
               {/* Name Fields - Side by Side */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
                   <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 mb-2">
-                    First Name
-                  </label>
+                First Name
+              </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
-                    <input
-                      id="firstName"
-                      type="text"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      required
+              <input
+                id="firstName"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
                       className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 bg-gray-50 focus:bg-white"
-                      placeholder="John"
-                    />
+                placeholder="John"
+              />
                   </div>
-                </div>
+            </div>
 
-                <div>
+            <div>
                   <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Last Name
-                  </label>
+                Last Name
+              </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
-                    <input
-                      id="lastName"
-                      type="text"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      required
+              <input
+                id="lastName"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
                       className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 bg-gray-50 focus:bg-white"
-                      placeholder="Doe"
-                    />
-                  </div>
+                placeholder="Doe"
+              />
+            </div>
                 </div>
               </div>
 
@@ -260,71 +260,71 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
                   </svg>
                   3-50 characters, letters, numbers, and underscores only
                 </p>
-              </div>
+          </div>
 
               {/* Email Field */}
-              <div>
+          <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
                   Email Address
-                </label>
+            </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
                     className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 bg-gray-50 focus:bg-white"
-                    placeholder="you@example.com"
-                  />
+              placeholder="you@example.com"
+            />
                 </div>
-              </div>
+          </div>
 
               {/* Phone Field (Optional) */}
-              <div>
+          <div>
                 <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
                   Phone Number <span className="text-gray-400 font-normal">(Optional)</span>
-                </label>
+            </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
                   </div>
-                  <input
-                    id="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+            <input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
                     className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 bg-gray-50 focus:bg-white"
                     placeholder="+1 (555) 123-4567"
-                  />
+            />
                 </div>
-              </div>
+          </div>
 
               {/* Password Field */}
-              <div>
+          <div>
                 <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Password
-                </label>
+              Password
+            </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                   </div>
-                  <input
-                    id="password"
+            <input
+              id="password"
                     type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
                     className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 bg-gray-50 focus:bg-white"
                     placeholder="Create a strong password"
                   />
@@ -351,14 +351,14 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
                   </svg>
                   Minimum 6 characters
                 </p>
-              </div>
+          </div>
 
               {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
+          <button
+            type="submit"
+            disabled={loading}
                 className="w-full bg-gradient-to-r from-teal-600 via-emerald-600 to-green-600 text-white py-3.5 px-4 rounded-xl hover:from-teal-700 hover:via-emerald-700 hover:to-green-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2"
-              >
+          >
                 {loading ? (
                   <>
                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -375,8 +375,8 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
                     </svg>
                   </>
                 )}
-              </button>
-            </form>
+          </button>
+        </form>
 
             {/* Divider */}
             <div className="mt-6 mb-6">
@@ -393,18 +393,18 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
             {/* Sign in link */}
             <div className="text-center">
               <p className="text-sm text-gray-600">
-                Already have an account?{' '}
-                <button
+            Already have an account?{' '}
+            <button
                   type="button"
-                  onClick={onSwitchToLogin}
+              onClick={onSwitchToLogin}
                   className="font-semibold text-teal-600 hover:text-teal-700 transition-colors duration-300"
-                >
+            >
                   Sign in instead
-                </button>
-              </p>
-            </div>
-          </div>
+            </button>
+          </p>
         </div>
+      </div>
+    </div>
       </div>
     </>
   );
