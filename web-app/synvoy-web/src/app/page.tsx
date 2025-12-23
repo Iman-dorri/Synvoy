@@ -363,7 +363,7 @@ export default function HomePage() {
               <a href="#features" className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">Features</a>
               <a href="#pricing" className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">Pricing</a>
               <Link href="/about" className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">About</Link>
-              <a href="#contact" className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">Contact</a>
+              <Link href="/contact" className="text-sm lg:text-base text-gray-700 hover:text-blue-600 transition-colors font-medium">Contact</Link>
             </div>
             
             {/* Desktop Buttons */}
@@ -461,22 +461,13 @@ export default function HomePage() {
               >
                 About
               </a>
-              <a
-                href="#contact"
-                onClick={(e) => {
-                  e.preventDefault()
-                  setMobileMenuOpen(false)
-                  setTimeout(() => {
-                    const element = document.getElementById('contact')
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                    }
-                  }, 100)
-                }}
+              <Link
+                href="/contact"
+                onClick={() => setMobileMenuOpen(false)}
                 className="block px-4 py-2 text-base text-gray-700 hover:text-blue-600 hover:bg-blue-50 active:bg-blue-100 rounded-lg transition-colors font-medium"
               >
                 Contact
-              </a>
+              </Link>
               <div className="pt-2 space-y-2 border-t border-gray-200">
                 <Link
                   href="/signin"
@@ -847,7 +838,7 @@ export default function HomePage() {
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">About Us</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">Careers</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">Press</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">Contact</a></li>
+                <li><Link href="/contact" className="text-gray-400 hover:text-white transition-colors duration-300">Contact</Link></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">Blog</a></li>
               </ul>
             </div>

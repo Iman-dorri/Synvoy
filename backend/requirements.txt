@@ -19,3 +19,7 @@ pydantic[email]==2.9.2
 
 # CORS (included in FastAPI but explicit)
 # Already included in fastapi
+
+# Email (Microsoft Graph API via MSAL)
+msal==1.28.0
+requests==2.32.3

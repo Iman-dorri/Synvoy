@@ -25,6 +25,7 @@ MANIFEST
 # Virtual environments
 .env
 .venv
+**/.venv
 env/
 venv/
 ENV/
@@ -112,3 +113,17 @@ dmypy.json
 
 # docs
 app-simulation.txt
+
+# Temporary diagnostic scripts (should not be committed)
+check-*-*.sh
+fix-*-*.sh
+recreate-*.sh
+access-n8n-via-ssh.md
+
+# Local development scripts (optional - can be committed if useful)
+# Uncomment to exclude:
+# fix-local-docker.sh
+# get-db-connection-info.sh
+# start-local-dev.sh
+# stop-for-local-dev.sh
+# cleanup-*.sh

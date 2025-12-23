@@ -32,7 +32,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
       }
       
       // Determine direction based on pathname order (only for public pages)
-      const paths = ['/', '/about', '/signin', '/register']
+      const paths = ['/', '/about', '/contact', '/signin', '/register']
       const currentIndex = paths.indexOf(pathname)
       const prevIndex = paths.indexOf(prevPathname)
       setDirection(currentIndex > prevIndex ? 'forward' : 'backward')

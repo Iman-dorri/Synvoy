@@ -388,6 +388,21 @@ export const storage = {
   },
 };
 
+// Contact API functions
+export const contactAPI = {
+  // Submit contact form
+  submitContact: async (contactData: {
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+    phone?: string;
+  }) => {
+    const response = await api.post('/contact/', contactData);
+    return response.data;
+  },
+};
+
 // Trip API functions
 export const tripAPI = {
   // Create a new trip

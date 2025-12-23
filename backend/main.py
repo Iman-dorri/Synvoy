@@ -45,12 +45,14 @@ from app.controllers.auth import router as auth_router
 from app.controllers.connection import router as connection_router
 from app.controllers.message import router as message_router
 from app.controllers.trip import router as trip_router
+from app.controllers.contact import router as contact_router
 
 # Include routers
 app.include_router(auth_router)
 app.include_router(connection_router)
 app.include_router(message_router)
 app.include_router(trip_router)
+app.include_router(contact_router)
 
 # Root endpoint
 @app.get("/")

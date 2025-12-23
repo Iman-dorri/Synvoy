@@ -22,6 +22,13 @@ if not DATABASE_URL:
     # URL-encode the password to handle special characters like @, :, /, etc.
     encoded_password = quote_plus(db_password)
     DATABASE_URL = f"postgresql://{db_user}:{encoded_password}@{db_host}:{db_port}/{db_name}"
+    print(f"Constructed DATABASE_URL from individual components (password encoded)")
+
+# Debug: Show the host part of DATABASE_URL (without password for security)
+if DATABASE_URL:
+    url_parts = DATABASE_URL.split('@')
+    if len(url_parts) > 1:
+        print(f"Database host: {url_parts[1].split('/')[0]}")
 
 max_retries = 30
 retry_delay = 2

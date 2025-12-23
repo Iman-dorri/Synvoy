@@ -156,3 +156,23 @@ ssh -L 5678:127.0.0.1:5678 your-user@your-server-ip
 # Or use the nginx SSL setup scripts
 cd nginx
 ./init-letsencrypt.sh
+
+
+Useful commands:
+# View all services status
+docker compose ps
+
+# View logs
+docker compose logs -f
+
+# Stop all services
+docker compose down
+
+# Restart a specific service
+docker compose restart backend
+
+# Rebuild and start
+docker compose up -d --build
+
+When deploying to your Contabo server, restore the SSL-enabled nginx.conf from git:
+git checkout nginx/nginx.conf
