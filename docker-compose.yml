@@ -47,7 +47,9 @@ services:
       MSAL_CLIENT_SECRET: ${MSAL_CLIENT_SECRET:-}
       MSAL_SENDER_USER: ${MSAL_SENDER_USER:-iman.dorri@synvoy.com}
       MSAL_FROM_ALIAS: ${MSAL_FROM_ALIAS:-contact@synvoy.com}
+      MSAL_NO_REPLY_ALIAS: ${MSAL_NO_REPLY_ALIAS:-no-reply@synvoy.com}
       CONTACT_EMAIL: ${CONTACT_EMAIL:-contact@synvoy.com}
+      TESTER_CODE: ${TESTER_CODE:-}
     # Ports exposed only for internal nginx access (remove if not needed for debugging)
     expose:
       - "8000"
