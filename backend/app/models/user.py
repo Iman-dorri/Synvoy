@@ -21,6 +21,9 @@ class User(Base):
     status = Column(String(50), default='pending_verification')
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    deletion_requested_at = Column(DateTime(timezone=True), nullable=True)
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
+    hard_delete_at = Column(DateTime(timezone=True), nullable=True)
     
     # Relationships
     trips = relationship("Trip", foreign_keys="Trip.user_id", back_populates="creator", cascade="all, delete-orphan")

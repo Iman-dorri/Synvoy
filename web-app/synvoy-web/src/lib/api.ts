@@ -301,6 +301,40 @@ export const authAPI = {
       throw new Error(error.response?.data?.detail || 'Failed to change password');
     }
   },
+
+  // Delete account
+  deleteAccount: async (password: string) => {
+    try {
+      const response = await api.post('/auth/delete-account', {
+        password,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to delete account');
+    }
+  },
+
+  // Cancel deletion
+  cancelDeletion: async (token: string) => {
+    try {
+      const response = await api.post('/auth/cancel-deletion', {
+        token,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to cancel deletion');
+    }
+  },
+
+  // Get deletion status
+  getDeletionStatus: async () => {
+    try {
+      const response = await api.get('/auth/deletion-status');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to get deletion status');
+    }
+  },
 };
 
 // Connection API functions

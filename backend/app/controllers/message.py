@@ -239,11 +239,11 @@ async def get_trip_messages(
             created_at=msg.created_at,
             sender={
                 "id": str(sender.id),
-                "email": sender.email,
-                "username": sender.username,
-                "first_name": sender.first_name,
-                "last_name": sender.last_name,
-                "avatar_url": sender.avatar_url
+                "email": sender.email if sender.status != 'pending_deletion' else None,
+                "username": sender.username if sender.status != 'pending_deletion' else None,
+                "first_name": "Deleted" if sender.status == 'pending_deletion' else sender.first_name,
+                "last_name": "User" if sender.status == 'pending_deletion' else sender.last_name,
+                "avatar_url": sender.avatar_url if sender.status != 'pending_deletion' else None
             } if sender else None,
             receiver=None
         ))
@@ -328,19 +328,19 @@ async def get_conversation(
             created_at=msg.created_at,
             sender={
                 "id": str(current_user.id) if msg.sender_id == current_user.id else str(other_user.id),
-                "email": current_user.email if msg.sender_id == current_user.id else other_user.email,
-                "username": current_user.username if msg.sender_id == current_user.id else other_user.username,
-                "first_name": current_user.first_name if msg.sender_id == current_user.id else other_user.first_name,
-                "last_name": current_user.last_name if msg.sender_id == current_user.id else other_user.last_name,
-                "avatar_url": current_user.avatar_url if msg.sender_id == current_user.id else other_user.avatar_url
+                "email": current_user.email if msg.sender_id == current_user.id else (other_user.email if other_user and other_user.status != 'pending_deletion' else None),
+                "username": current_user.username if msg.sender_id == current_user.id else (other_user.username if other_user and other_user.status != 'pending_deletion' else None),
+                "first_name": current_user.first_name if msg.sender_id == current_user.id else ("Deleted" if other_user and other_user.status == 'pending_deletion' else (other_user.first_name if other_user else None)),
+                "last_name": current_user.last_name if msg.sender_id == current_user.id else ("User" if other_user and other_user.status == 'pending_deletion' else (other_user.last_name if other_user else None)),
+                "avatar_url": current_user.avatar_url if msg.sender_id == current_user.id else (other_user.avatar_url if other_user and other_user.status != 'pending_deletion' else None)
             } if other_user else None,
             receiver={
                 "id": str(current_user.id) if msg.receiver_id == current_user.id else str(other_user.id),
-                "email": current_user.email if msg.receiver_id == current_user.id else other_user.email,
-                "username": current_user.username if msg.receiver_id == current_user.id else other_user.username,
-                "first_name": current_user.first_name if msg.receiver_id == current_user.id else other_user.first_name,
-                "last_name": current_user.last_name if msg.receiver_id == current_user.id else other_user.last_name,
-                "avatar_url": current_user.avatar_url if msg.receiver_id == current_user.id else other_user.avatar_url
+                "email": current_user.email if msg.receiver_id == current_user.id else (other_user.email if other_user and other_user.status != 'pending_deletion' else None),
+                "username": current_user.username if msg.receiver_id == current_user.id else (other_user.username if other_user and other_user.status != 'pending_deletion' else None),
+                "first_name": current_user.first_name if msg.receiver_id == current_user.id else ("Deleted" if other_user and other_user.status == 'pending_deletion' else (other_user.first_name if other_user else None)),
+                "last_name": current_user.last_name if msg.receiver_id == current_user.id else ("User" if other_user and other_user.status == 'pending_deletion' else (other_user.last_name if other_user else None)),
+                "avatar_url": current_user.avatar_url if msg.receiver_id == current_user.id else (other_user.avatar_url if other_user and other_user.status != 'pending_deletion' else None)
             } if other_user else None
         ))
     

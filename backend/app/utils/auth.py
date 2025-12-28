@@ -53,4 +53,13 @@ def verify_token(token: str) -> Optional[dict]:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
     except JWTError:
-        return None 
+        return None
+
+def generate_secure_token(length: int = 32) -> str:
+    """Generate a high-entropy random token."""
+    import secrets
+    return secrets.token_urlsafe(length)
+
+def hash_token(token: str) -> str:
+    """Hash a token using bcrypt for storage."""
+    return get_password_hash(token) 

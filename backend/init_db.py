@@ -4,7 +4,7 @@ Run this script to create all database tables.
 """
 import sys
 from app.database import engine, Base
-from app.models import User, UserConnection, Message, Trip, TripParticipant, VerificationToken
+from app.models import User, UserConnection, Message, Trip, TripParticipant, VerificationToken, DeletionCancellationToken
 
 def init_db():
     """Create all database tables."""

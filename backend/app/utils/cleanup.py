@@ -1,10 +1,12 @@
 """
-Background task to clean up unverified user accounts after 2 hours
+Background tasks to clean up unverified user accounts and hard delete pending deletion accounts
 """
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models.user import User
 from app.models.verification_token import VerificationToken
+from app.models.deletion_cancellation_token import DeletionCancellationToken
+from app.utils.email import send_deletion_complete_email
 from datetime import datetime, timedelta, timezone
 
 def cleanup_unverified_accounts():
@@ -47,3 +49,58 @@ def cleanup_unverified_accounts():
     finally:
         db.close()
 
+def hard_delete_pending_accounts():
+    """Hard delete accounts that have passed their hard_delete_at date."""
+    db: Session = SessionLocal()
+    try:
+        now = datetime.now(timezone.utc)
+        
+        # Find users pending deletion where hard_delete_at has passed
+        users_to_delete = db.query(User).filter(
+            User.status == 'pending_deletion',
+            User.hard_delete_at.isnot(None),
+            User.hard_delete_at <= now
+        ).all()
+        
+        deleted_count = 0
+        for user in users_to_delete:
+            user_email = user.email
+            user_name = f"{user.first_name} {user.last_name}".strip() or user.username
+            
+            # Send deletion complete email BEFORE deleting
+            try:
+                send_deletion_complete_email(
+                    email=user_email,
+                    name=user_name
+                )
+            except Exception as e:
+                print(f"Warning: Failed to send deletion complete email to {user_email}: {e}")
+            
+            # Delete associated tokens
+            db.query(DeletionCancellationToken).filter(
+                DeletionCancellationToken.user_id == user.id
+            ).delete()
+            
+            db.query(VerificationToken).filter(
+                VerificationToken.user_id == user.id
+            ).delete()
+            
+            # Delete the user (cascade will handle related data)
+            db.delete(user)
+            deleted_count += 1
+            print(f"Hard deleted account: {user_email} (deletion was scheduled for {user.hard_delete_at})")
+        
+        if deleted_count > 0:
+            db.commit()
+            print(f"Hard delete completed: Permanently deleted {deleted_count} account(s)")
+        else:
+            db.commit()
+            print("Hard delete completed: No accounts to permanently delete")
+            
+    except Exception as e:
+        db.rollback()
+        print(f"Error during hard delete: {e}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        db.close()

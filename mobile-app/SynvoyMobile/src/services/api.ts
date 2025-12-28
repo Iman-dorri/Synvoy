@@ -175,6 +175,40 @@ class ApiService {
     }
   }
 
+  async deleteAccount(password: string) {
+    try {
+      const response = await this.client.post('/auth/delete-account', {
+        password,
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('API delete account error:', error);
+      throw error;
+    }
+  }
+
+  async cancelDeletion(token: string) {
+    try {
+      const response = await this.client.post('/auth/cancel-deletion', {
+        token,
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('API cancel deletion error:', error);
+      throw error;
+    }
+  }
+
+  async getDeletionStatus() {
+    try {
+      const response = await this.client.get('/auth/deletion-status');
+      return response.data;
+    } catch (error: any) {
+      console.error('API get deletion status error:', error);
+      throw error;
+    }
+  }
+
   // User endpoints
   async getProfile() {
     const response = await this.client.get('/auth/profile');

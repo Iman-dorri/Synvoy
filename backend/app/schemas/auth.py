@@ -61,3 +61,15 @@ class VerificationStatusResponse(BaseModel):
 class ChangePasswordRequest(BaseModel):
     current_password: str = Field(..., min_length=1, description="Current password")
     new_password: str = Field(..., min_length=6, max_length=72, description="New password (min 6 characters)")
+
+class DeleteAccountRequest(BaseModel):
+    password: str = Field(..., min_length=1, description="Current password for confirmation")
+
+class CancelDeletionRequest(BaseModel):
+    token: str = Field(..., min_length=1, description="Cancellation token from email")
+
+class DeletionStatusResponse(BaseModel):
+    is_pending_deletion: bool
+    deletion_requested_at: Optional[datetime] = None
+    hard_delete_at: Optional[datetime] = None
+    days_remaining: Optional[int] = None

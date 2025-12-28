@@ -5,13 +5,14 @@ from sqlalchemy.sql import func
 from app.database import get_db
 from app.models.user import User
 from app.models.verification_token import VerificationToken
+from app.models.deletion_cancellation_token import DeletionCancellationToken
 from app.schemas.auth import (
     UserCreate, UserLogin, UserResponse, TokenWithUser,
     VerifyEmailRequest, ResendVerificationRequest, VerificationStatusResponse,
-    ChangePasswordRequest
+    ChangePasswordRequest, DeleteAccountRequest, CancelDeletionRequest, DeletionStatusResponse
 )
-from app.utils.auth import get_password_hash, verify_password, create_access_token, verify_token
-from app.utils.email import send_verification_email, send_password_change_email
+from app.utils.auth import get_password_hash, verify_password, create_access_token, verify_token, generate_secure_token, hash_token
+from app.utils.email import send_verification_email, send_password_change_email, send_deletion_scheduled_email, send_deletion_complete_email
 from typing import Optional
 from datetime import datetime, timedelta, timezone
 import os
@@ -164,6 +165,14 @@ async def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="email_not_verified"
+            )
+        
+        # Check if account is pending deletion (block login)
+        if user.status == 'pending_deletion':
+            print(f"Login attempt failed: User '{user_credentials.username_or_email}' account is pending deletion")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="account_pending_deletion"
             )
         
         # Check if user is active or pending verification (allow pending_verification for development)
@@ -520,6 +529,201 @@ async def change_password(
         raise
     except Exception as e:
         print(f"Error changing password: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(e)}"
+        )
+
+@router.post("/delete-account")
+async def delete_account(
+    delete_data: DeleteAccountRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Request account deletion.
+    Requires password verification, sets 14-day grace period, and sends email notification.
+    """
+    try:
+        # Verify password
+        if not verify_password(delete_data.password, current_user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect password"
+            )
+        
+        # Check if already pending deletion
+        if current_user.status == 'pending_deletion':
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Account deletion is already scheduled"
+            )
+        
+        # Calculate deletion dates (14-day grace period)
+        now = datetime.now(timezone.utc)
+        deletion_requested_at = now
+        hard_delete_at = now + timedelta(days=14)
+        
+        # Update user status and dates
+        current_user.status = 'pending_deletion'
+        current_user.deletion_requested_at = deletion_requested_at
+        current_user.hard_delete_at = hard_delete_at
+        current_user.updated_at = now
+        db.commit()
+        db.refresh(current_user)
+        
+        # Generate cancellation token
+        cancellation_token = generate_secure_token(32)
+        token_hash = hash_token(cancellation_token)
+        
+        # Store cancellation token
+        cancellation_token_record = DeletionCancellationToken(
+            user_id=current_user.id,
+            token_hash=token_hash,
+            expires_at=hard_delete_at,
+            is_used=False
+        )
+        db.add(cancellation_token_record)
+        db.commit()
+        
+        # Send email notification
+        user_name = f"{current_user.first_name} {current_user.last_name}".strip() or current_user.username
+        email_sent = send_deletion_scheduled_email(
+            email=current_user.email,
+            name=user_name,
+            hard_delete_at=hard_delete_at,
+            cancellation_token=cancellation_token
+        )
+        
+        if not email_sent:
+            print(f"Warning: Failed to send deletion scheduled email to {current_user.email}")
+        
+        return {
+            "success": True,
+            "message": "Account deletion scheduled. A confirmation email has been sent with cancellation instructions.",
+            "hard_delete_at": hard_delete_at.isoformat(),
+            "days_remaining": 14
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error scheduling account deletion: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(e)}"
+        )
+
+@router.post("/cancel-deletion")
+async def cancel_deletion(
+    cancel_data: CancelDeletionRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Cancel account deletion using token from email.
+    Public endpoint (no auth required).
+    """
+    try:
+        # Find token by hashing the provided token and comparing
+        # We need to check all tokens for this user and verify
+        tokens = db.query(DeletionCancellationToken).filter(
+            DeletionCancellationToken.is_used == False
+        ).all()
+        
+        matching_token = None
+        for token_record in tokens:
+            if verify_password(cancel_data.token, token_record.token_hash):
+                matching_token = token_record
+                break
+        
+        if not matching_token:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Invalid or expired cancellation token"
+            )
+        
+        # Check if token is expired
+        if matching_token.is_expired():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cancellation token has expired"
+            )
+        
+        # Check if already used
+        if matching_token.is_used:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cancellation token has already been used"
+            )
+        
+        # Get user
+        user = db.query(User).filter(User.id == matching_token.user_id).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        # Check if still pending deletion
+        if user.status != 'pending_deletion':
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Account is not pending deletion"
+            )
+        
+        # Cancel deletion
+        user.status = 'active'
+        user.deletion_requested_at = None
+        user.hard_delete_at = None
+        user.updated_at = datetime.now(timezone.utc)
+        
+        # Mark token as used
+        matching_token.is_used = True
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": "Account deletion has been cancelled. Your account is now active."
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error cancelling account deletion: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(e)}"
+        )
+
+@router.get("/deletion-status", response_model=DeletionStatusResponse)
+async def get_deletion_status(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get current account deletion status.
+    """
+    try:
+        is_pending = current_user.status == 'pending_deletion'
+        deletion_requested_at = current_user.deletion_requested_at
+        hard_delete_at = current_user.hard_delete_at
+        days_remaining = None
+        
+        if is_pending and hard_delete_at:
+            now = datetime.now(timezone.utc)
+            time_remaining = hard_delete_at - now
+            days_remaining = max(0, time_remaining.days)
+        
+        return DeletionStatusResponse(
+            is_pending_deletion=is_pending,
+            deletion_requested_at=deletion_requested_at,
+            hard_delete_at=hard_delete_at,
+            days_remaining=days_remaining
+        )
+        
+    except Exception as e:
+        print(f"Error getting deletion status: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Internal server error: {str(e)}"

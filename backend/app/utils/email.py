@@ -7,7 +7,7 @@ from msal import ConfidentialClientApplication
 from typing import Optional
 from dotenv import load_dotenv
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Load .env file from multiple possible locations
 # Try root .env first (for local development), then backend/.env
@@ -498,4 +498,271 @@ This is an automated email, please do not reply.
         return False
     except Exception as e:
         print(f"Error sending password change email: {e}")
+        return False
+
+def send_deletion_scheduled_email(
+    email: str,
+    name: str,
+    hard_delete_at: datetime,
+    cancellation_token: str
+) -> bool:
+    """
+    Send account deletion scheduled email with cancellation link.
+    
+    Args:
+        email: User's email address
+        name: User's name
+        hard_delete_at: Date when account will be permanently deleted
+        cancellation_token: Token for canceling deletion
+    
+    Returns:
+        True if email sent successfully, False otherwise
+    """
+    # Check if MSAL is configured
+    if not all([TENANT_ID, CLIENT_ID, CLIENT_SECRET, SENDER_USER]):
+        print("Warning: MSAL not configured. Deletion email not sent.")
+        return False
+    
+    try:
+        # Get access token
+        access_token = get_access_token()
+        if not access_token:
+            print("Failed to get access token for deletion email")
+            return False
+        
+        # Format deletion date
+        deletion_date_str = hard_delete_at.strftime('%B %d, %Y at %I:%M %p UTC')
+        days_remaining = (hard_delete_at - datetime.now(timezone.utc)).days
+        
+        # Create cancellation URL (use environment variable or default)
+        base_url = os.getenv("FRONTEND_URL", "https://www.synvoy.com")
+        cancel_url = f"{base_url}/cancel-deletion?token={cancellation_token}"
+        
+        # Create email body
+        body_html = f"""<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">Account Deletion Scheduled</h1>
+    </div>
+    <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px; margin-bottom: 20px;">Hi {name},</p>
+        <p style="font-size: 16px; margin-bottom: 20px;">We received a request to delete your Synvoy account.</p>
+        
+        <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 20px; margin: 30px 0; border-radius: 4px;">
+            <p style="font-size: 14px; color: #991b1b; margin: 0;">
+                <strong>⚠️ Your account will be permanently deleted on {deletion_date_str}</strong><br>
+                You have <strong>{days_remaining} days</strong> remaining to cancel this deletion.
+            </p>
+        </div>
+        
+        <p style="font-size: 14px; color: #6b7280; margin-bottom: 20px;">
+            <strong>What happens when your account is deleted:</strong>
+        </p>
+        <ul style="font-size: 14px; color: #6b7280; margin-bottom: 20px; padding-left: 20px;">
+            <li>Your profile will be permanently removed</li>
+            <li>Your account will be immediately logged out</li>
+            <li>You will not be able to log in</li>
+            <li>Your messages may remain visible to others, but your identity will be anonymized</li>
+        </ul>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{cancel_url}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Cancel Deletion</a>
+        </div>
+        
+        <p style="font-size: 14px; color: #6b7280; margin-top: 30px; margin-bottom: 0;">
+            If you did not request this deletion, please cancel it immediately using the button above or contact our support team.
+        </p>
+    </div>
+    <div style="text-align: center; margin-top: 20px; padding: 20px; color: #9ca3af; font-size: 12px;">
+        <p style="margin: 0;">© {datetime.now().year} Synvoy. All rights reserved.</p>
+        <p style="margin: 5px 0 0 0;">This is an automated email, please do not reply.</p>
+    </div>
+</body>
+</html>"""
+        
+        body_text = f"""Account Deletion Scheduled
+
+Hi {name},
+
+We received a request to delete your Synvoy account.
+
+⚠️ Your account will be permanently deleted on {deletion_date_str}
+You have {days_remaining} days remaining to cancel this deletion.
+
+What happens when your account is deleted:
+- Your profile will be permanently removed
+- Your account will be immediately logged out
+- You will not be able to log in
+- Your messages may remain visible to others, but your identity will be anonymized
+
+Cancel Deletion: {cancel_url}
+
+If you did not request this deletion, please cancel it immediately using the link above or contact our support team.
+
+© {datetime.now().year} Synvoy. All rights reserved.
+This is an automated email, please do not reply.
+"""
+        
+        # Prepare email message
+        email_message = {
+            "message": {
+                "subject": "Your Synvoy account is scheduled for deletion",
+                "body": {
+                    "contentType": "HTML",
+                    "content": body_html
+                },
+                "from": {
+                    "emailAddress": {
+                        "address": NOTIFICATIONS_ALIAS,
+                        "name": "Synvoy Notifications"
+                    }
+                },
+                "toRecipients": [
+                    {
+                        "emailAddress": {
+                            "address": email,
+                            "name": name
+                        }
+                    }
+                ]
+            },
+            "saveToSentItems": "true"
+        }
+        
+        # Send email via Microsoft Graph API
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+        
+        url = f"{GRAPH_API_ENDPOINT}/users/{SENDER_USER}/sendMail"
+        
+        response = requests.post(url, json=email_message, headers=headers)
+        
+        if response.status_code == 202:
+            print(f"Deletion scheduled email sent successfully to {email}")
+            return True
+        else:
+            print(f"Failed to send deletion scheduled email. Status: {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+    except Exception as e:
+        print(f"Error sending deletion scheduled email: {e}")
+        return False
+
+def send_deletion_complete_email(
+    email: str,
+    name: str
+) -> bool:
+    """
+    Send account deletion complete confirmation email.
+    
+    Args:
+        email: User's email address (may be deleted, but email is sent before deletion)
+        name: User's name
+    
+    Returns:
+        True if email sent successfully, False otherwise
+    """
+    # Check if MSAL is configured
+    if not all([TENANT_ID, CLIENT_ID, CLIENT_SECRET, SENDER_USER]):
+        print("Warning: MSAL not configured. Deletion complete email not sent.")
+        return False
+    
+    try:
+        # Get access token
+        access_token = get_access_token()
+        if not access_token:
+            print("Failed to get access token for deletion complete email")
+            return False
+        
+        # Create email body
+        body_html = f"""<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">Account Deletion Complete</h1>
+    </div>
+    <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px; margin-bottom: 20px;">Hi {name},</p>
+        <p style="font-size: 16px; margin-bottom: 20px;">This email confirms that your Synvoy account has been permanently deleted as requested.</p>
+        
+        <div style="background: #f3f4f6; border-left: 4px solid #6b7280; padding: 20px; margin: 30px 0; border-radius: 4px;">
+            <p style="font-size: 14px; color: #1f2937; margin: 0;">
+                <strong>✅ Account Deletion Complete</strong><br>
+                Your account and all associated data have been permanently removed from our systems.
+            </p>
+        </div>
+        
+        <p style="font-size: 14px; color: #6b7280; margin-top: 30px; margin-bottom: 0;">
+            If you have any questions or concerns, please contact our support team. We're sorry to see you go!
+        </p>
+    </div>
+    <div style="text-align: center; margin-top: 20px; padding: 20px; color: #9ca3af; font-size: 12px;">
+        <p style="margin: 0;">© {datetime.now().year} Synvoy. All rights reserved.</p>
+        <p style="margin: 5px 0 0 0;">This is an automated email, please do not reply.</p>
+    </div>
+</body>
+</html>"""
+        
+        body_text = f"""Account Deletion Complete
+
+Hi {name},
+
+This email confirms that your Synvoy account has been permanently deleted as requested.
+
+✅ Account Deletion Complete
+Your account and all associated data have been permanently removed from our systems.
+
+If you have any questions or concerns, please contact our support team. We're sorry to see you go!
+
+© {datetime.now().year} Synvoy. All rights reserved.
+This is an automated email, please do not reply.
+"""
+        
+        # Prepare email message
+        email_message = {
+            "message": {
+                "subject": "Your Synvoy account has been deleted",
+                "body": {
+                    "contentType": "HTML",
+                    "content": body_html
+                },
+                "from": {
+                    "emailAddress": {
+                        "address": NOTIFICATIONS_ALIAS,
+                        "name": "Synvoy Notifications"
+                    }
+                },
+                "toRecipients": [
+                    {
+                        "emailAddress": {
+                            "address": email,
+                            "name": name
+                        }
+                    }
+                ]
+            },
+            "saveToSentItems": "true"
+        }
+        
+        # Send email via Microsoft Graph API
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+        
+        url = f"{GRAPH_API_ENDPOINT}/users/{SENDER_USER}/sendMail"
+        
+        response = requests.post(url, json=email_message, headers=headers)
+        
+        if response.status_code == 202:
+            print(f"Deletion complete email sent successfully to {email}")
+            return True
+        else:
+            print(f"Failed to send deletion complete email. Status: {response.status_code}")
+            return False
+        
+    except Exception as e:
+        print(f"Error sending deletion complete email: {e}")
         return False

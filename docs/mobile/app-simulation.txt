@@ -196,3 +196,9 @@ docker compose up -d --build
 
 When deploying to your Contabo server, restore the SSL-enabled nginx.conf from git:
 git checkout nginx/nginx.conf
+
+docker-compose exec backend python init_db.py
+docker-compose build backend frontend
+docker-compose stop backend frontend
+docker-compose rm -f backend frontend
+docker-compose up -d backend frontend

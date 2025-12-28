@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  TextInput,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
@@ -13,6 +16,7 @@ import { logout } from '../../store/slices/authSlice';
 import { theme, colors } from '../../theme';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
+import apiService from '../../services/api';
 
 const ProfileScreen = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -25,6 +29,29 @@ const ProfileScreen = ({ navigation }: any) => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Deletion state
+  const [deletionStatus, setDeletionStatus] = useState<any>(null);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  
+  // Fetch deletion status on mount
+  useEffect(() => {
+    const fetchDeletionStatus = async () => {
+      try {
+        const status = await apiService.getDeletionStatus();
+        setDeletionStatus(status);
+      } catch (err: any) {
+        // Ignore errors, user might not be pending deletion
+        setDeletionStatus({ is_pending_deletion: false });
+      }
+    };
+    if (user) {
+      fetchDeletionStatus();
+    }
+  }, [user]);
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -74,9 +101,43 @@ const ProfileScreen = ({ navigation }: any) => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      Alert.alert('Error', 'Password is required');
+      return;
+    }
+    
+    setDeletingAccount(true);
+    try {
+      const result = await apiService.deleteAccount(deletePassword);
+      setDeletionStatus({
+        is_pending_deletion: true,
+        hard_delete_at: result.hard_delete_at,
+        days_remaining: result.days_remaining,
+      });
+      setShowDeleteAccount(false);
+      setDeletePassword('');
+      Alert.alert(
+        'Account Deletion Scheduled',
+        'Your account will be permanently deleted in 14 days. Check your email for a cancellation link.',
+        [
+          {
+            text: 'OK',
+            onPress: () => dispatch(logout()),
+          },
+        ]
+      );
+    } catch (err: any) {
+      Alert.alert('Error', err.response?.data?.detail || err.message || 'Failed to delete account');
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
+
   const menuItems = [
     { icon: 'person', label: 'Edit Profile', color: colors.primary[500] },
     { icon: 'lock', label: 'Change Password', color: colors.primary[600], action: 'changePassword' },
+    { icon: 'delete', label: 'Delete Account', color: colors.error, action: 'deleteAccount' },
     { icon: 'notifications', label: 'Notifications', color: colors.orange[500] },
     { icon: 'settings', label: 'Settings', color: colors.gray[600] },
     { icon: 'help', label: 'Help & Support', color: colors.cyan[500] },
@@ -128,6 +189,26 @@ const ProfileScreen = ({ navigation }: any) => {
             onPress={() => {
               if (item.action === 'changePassword') {
                 setShowChangePassword(true);
+              } else if (item.action === 'deleteAccount') {
+                if (deletionStatus?.is_pending_deletion) {
+                  Alert.alert(
+                    'Account Deletion Scheduled',
+                    `Your account will be permanently deleted on ${deletionStatus.hard_delete_at ? new Date(deletionStatus.hard_delete_at).toLocaleString() : 'N/A'}. You have ${deletionStatus.days_remaining || 0} days remaining. Check your email for a cancellation link.`
+                  );
+                } else {
+                  Alert.alert(
+                    'Delete Account',
+                    'Your account will be permanently deleted 14 days after you request deletion. You can cancel anytime before then. Your messages may remain visible to others you chatted with, but your profile will be removed.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Continue',
+                        style: 'destructive',
+                        onPress: () => setShowDeleteAccount(true),
+                      },
+                    ]
+                  );
+                }
               }
             }}
           >
@@ -254,6 +335,66 @@ const ProfileScreen = ({ navigation }: any) => {
                   <ActivityIndicator size="small" color={colors.text.white} />
                 ) : (
                   <Text style={styles.changePasswordButtonText}>Change Password</Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Delete Account Modal */}
+      <Modal
+        visible={showDeleteAccount}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowDeleteAccount(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Delete Account</Text>
+              <TouchableOpacity onPress={() => setShowDeleteAccount(false)}>
+                <Icon name="close" size={24} color={colors.text.primary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Enter Password to Confirm</Text>
+                <View style={styles.passwordInputContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    value={deletePassword}
+                    onChangeText={setDeletePassword}
+                    placeholder="Enter your password"
+                    secureTextEntry={!showDeletePassword}
+                    autoCapitalize="none"
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowDeletePassword(!showDeletePassword)}
+                    style={styles.eyeIcon}
+                  >
+                    <Icon
+                      name={showDeletePassword ? 'visibility-off' : 'visibility'}
+                      size={24}
+                      color={colors.gray[400]}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.deleteAccountButton,
+                  (deletingAccount || !deletePassword) && styles.deleteAccountButtonDisabled,
+                ]}
+                onPress={handleDeleteAccount}
+                disabled={deletingAccount || !deletePassword}
+              >
+                {deletingAccount ? (
+                  <ActivityIndicator size="small" color={colors.text.white} />
+                ) : (
+                  <Text style={styles.deleteAccountButtonText}>Confirm Deletion</Text>
                 )}
               </TouchableOpacity>
             </ScrollView>
@@ -469,6 +610,23 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   changePasswordButtonText: {
+    color: colors.text.white,
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.semibold,
+  },
+  deleteAccountButton: {
+    backgroundColor: colors.error,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+    marginTop: theme.spacing.md,
+    ...theme.shadows.button,
+  },
+  deleteAccountButtonDisabled: {
+    backgroundColor: colors.gray[400],
+    opacity: 0.5,
+  },
+  deleteAccountButtonText: {
     color: colors.text.white,
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.semibold,

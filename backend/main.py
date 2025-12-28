@@ -67,7 +67,7 @@ async def root():
 
 # Setup background scheduler for cleanup tasks
 scheduler = BackgroundScheduler()
-from app.utils.cleanup import cleanup_unverified_accounts
+from app.utils.cleanup import cleanup_unverified_accounts, hard_delete_pending_accounts
 
 # Schedule cleanup task to run every 30 minutes
 scheduler.add_job(
@@ -78,11 +78,22 @@ scheduler.add_job(
     replace_existing=True
 )
 
+# Schedule hard delete task to run every hour
+scheduler.add_job(
+    hard_delete_pending_accounts,
+    trigger=IntervalTrigger(hours=1),
+    id='hard_delete_pending_accounts',
+    name='Hard delete accounts past their deletion date',
+    replace_existing=True
+)
+
 # Start scheduler when app starts
 @app.on_event("startup")
 async def startup_event():
     scheduler.start()
-    print("Background scheduler started: Cleanup task will run every 30 minutes")
+    print("Background scheduler started:")
+    print("  - Cleanup task will run every 30 minutes")
+    print("  - Hard delete task will run every hour")
 
 @app.on_event("shutdown")
 async def shutdown_event():

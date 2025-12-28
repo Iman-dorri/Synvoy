@@ -19,6 +19,30 @@ export default function ProfilePage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Deletion state
+  const [deletionStatus, setDeletionStatus] = useState<any>(null);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  
+  // Fetch deletion status on mount
+  useEffect(() => {
+    const fetchDeletionStatus = async () => {
+      try {
+        const status = await authAPI.getDeletionStatus();
+        setDeletionStatus(status);
+      } catch (err: any) {
+        // Ignore errors, user might not be pending deletion
+        setDeletionStatus({ is_pending_deletion: false });
+      }
+    };
+    if (user) {
+      fetchDeletionStatus();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -403,6 +427,152 @@ export default function ProfilePage() {
                       </button>
                     </div>
                   </div>
+                </div>
+              )}
+            </div>
+
+            {/* Delete Account Section */}
+            <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Account Deletion
+              </h3>
+              
+              {deletionStatus?.is_pending_deletion ? (
+                <div className="space-y-4">
+                  <div className="bg-red-50 border-l-4 border-red-500 text-red-800 px-4 py-3 rounded-lg">
+                    <p className="text-sm font-semibold mb-1">⚠️ Account Deletion Scheduled</p>
+                    <p className="text-sm mb-2">
+                      Your account will be permanently deleted on{' '}
+                      <strong>
+                        {deletionStatus.hard_delete_at
+                          ? new Date(deletionStatus.hard_delete_at).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : 'N/A'}
+                      </strong>
+                    </p>
+                    {deletionStatus.days_remaining !== null && (
+                      <p className="text-sm">
+                        You have <strong>{deletionStatus.days_remaining} days</strong> remaining to cancel.
+                      </p>
+                    )}
+                    <p className="text-sm mt-2">
+                      Check your email for a cancellation link, or contact support to cancel the deletion.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 px-4 py-3 rounded-lg">
+                    <p className="text-sm font-semibold mb-1">⚠️ Warning</p>
+                    <p className="text-sm">
+                      Your account will be permanently deleted 14 days after you request deletion. You can cancel anytime before then. Your messages may remain visible to others you chatted with, but your profile will be removed.
+                    </p>
+                  </div>
+                  
+                  {!showDeleteAccount ? (
+                    <button
+                      onClick={() => setShowDeleteAccount(true)}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                    >
+                      Delete Account
+                    </button>
+                  ) : (
+                    <div className="space-y-4">
+                      {deleteError && (
+                        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg">
+                          <p className="text-sm">{deleteError}</p>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Enter Password to Confirm
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showDeletePassword ? 'text' : 'password'}
+                            value={deletePassword}
+                            onChange={(e) => setDeletePassword(e.target.value)}
+                            className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                            placeholder="Enter your password"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowDeletePassword(!showDeletePassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            {showDeletePassword ? (
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.736m0 0L21 21" />
+                              </svg>
+                            ) : (
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-3">
+                        <button
+                          onClick={async () => {
+                            setDeleteError('');
+                            
+                            if (!deletePassword) {
+                              setDeleteError('Password is required');
+                              return;
+                            }
+                            
+                            setDeletingAccount(true);
+                            try {
+                              const result = await authAPI.deleteAccount(deletePassword);
+                              setDeletionStatus({
+                                is_pending_deletion: true,
+                                hard_delete_at: result.hard_delete_at,
+                                days_remaining: result.days_remaining,
+                              });
+                              setShowDeleteAccount(false);
+                              setDeletePassword('');
+                              // Logout user immediately
+                              if (typeof window !== 'undefined') {
+                                localStorage.removeItem('auth_token');
+                                localStorage.removeItem('user_data');
+                                window.location.href = '/';
+                              }
+                            } catch (err: any) {
+                              setDeleteError(err.message || 'Failed to delete account');
+                            } finally {
+                              setDeletingAccount(false);
+                            }
+                          }}
+                          disabled={deletingAccount || !deletePassword}
+                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {deletingAccount ? 'Deleting...' : 'Confirm Deletion'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowDeleteAccount(false);
+                            setDeletePassword('');
+                            setDeleteError('');
+                          }}
+                          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
