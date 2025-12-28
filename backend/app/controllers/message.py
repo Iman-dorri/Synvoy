@@ -240,6 +240,7 @@ async def get_trip_messages(
             sender={
                 "id": str(sender.id),
                 "email": sender.email,
+                "username": sender.username,
                 "first_name": sender.first_name,
                 "last_name": sender.last_name,
                 "avatar_url": sender.avatar_url
@@ -328,6 +329,7 @@ async def get_conversation(
             sender={
                 "id": str(current_user.id) if msg.sender_id == current_user.id else str(other_user.id),
                 "email": current_user.email if msg.sender_id == current_user.id else other_user.email,
+                "username": current_user.username if msg.sender_id == current_user.id else other_user.username,
                 "first_name": current_user.first_name if msg.sender_id == current_user.id else other_user.first_name,
                 "last_name": current_user.last_name if msg.sender_id == current_user.id else other_user.last_name,
                 "avatar_url": current_user.avatar_url if msg.sender_id == current_user.id else other_user.avatar_url
@@ -335,6 +337,7 @@ async def get_conversation(
             receiver={
                 "id": str(current_user.id) if msg.receiver_id == current_user.id else str(other_user.id),
                 "email": current_user.email if msg.receiver_id == current_user.id else other_user.email,
+                "username": current_user.username if msg.receiver_id == current_user.id else other_user.username,
                 "first_name": current_user.first_name if msg.receiver_id == current_user.id else other_user.first_name,
                 "last_name": current_user.last_name if msg.receiver_id == current_user.id else other_user.last_name,
                 "avatar_url": current_user.avatar_url if msg.receiver_id == current_user.id else other_user.avatar_url

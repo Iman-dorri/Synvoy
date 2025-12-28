@@ -227,7 +227,9 @@ export default function ChatPage() {
                 <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                   {otherUser.first_name} {otherUser.last_name}
                 </h2>
-                <p className="text-xs sm:text-sm text-gray-600 truncate">{otherUser.email}</p>
+                <p className="text-xs sm:text-sm text-gray-600 truncate">
+                  {otherUser.username ? `@${otherUser.username}` : (otherUser.email || 'User')}
+                </p>
               </div>
             )}
           </div>

@@ -144,7 +144,7 @@ function RegisterForm() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="firstName" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                    First Name
+                    First Name <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
@@ -166,7 +166,7 @@ function RegisterForm() {
 
                 <div>
                   <label htmlFor="lastName" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                    Last Name
+                    Last Name <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
@@ -190,7 +190,7 @@ function RegisterForm() {
               {/* Username Field */}
               <div>
                 <label htmlFor="username" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                  Username
+                  Username <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
@@ -225,7 +225,7 @@ function RegisterForm() {
               {/* Email Field */}
               <div>
                 <label htmlFor="email" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                  Email Address
+                  Email Address <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
@@ -270,7 +270,7 @@ function RegisterForm() {
               {/* Password Field */}
               <div>
                 <label htmlFor="password" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                  Password
+                  Password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
@@ -316,7 +316,7 @@ function RegisterForm() {
               {/* Confirm Password Field */}
               <div>
                 <label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                  Confirm Password
+                  Confirm Password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
