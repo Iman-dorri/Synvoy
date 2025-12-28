@@ -27,8 +27,10 @@ interface AuthContextType {
     email: string;
     password: string;
     phone?: string;
+    tester_code: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -83,12 +85,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw new Error('Invalid response format from server during login');
       }
       
+      // Check if email is verified
+      if (!user.is_verified) {
+        // Redirect to verification page
+        if (typeof window !== 'undefined') {
+          window.location.href = `/verify-email?email=${encodeURIComponent(user.email)}`;
+        }
+        throw new Error('email_not_verified');
+      }
+      
       storage.saveToken(token);
       storage.saveUserData(user);
       setUser(user);
     } catch (error: any) {
       console.error('Login error in AuthContext:', error);
-      throw new Error(error.message || 'Login failed');
+      // Don't throw if it's email_not_verified (redirect already handled)
+      if (error.message !== 'email_not_verified') {
+        throw new Error(error.message || 'Login failed');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -101,6 +115,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     email: string;
     password: string;
     phone?: string;
+    tester_code: string;
   }) => {
     try {
       setIsLoading(true);
@@ -118,6 +133,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       storage.saveToken(token);
       storage.saveUserData(user);
       setUser(user);
+      
+      // Redirect to verification page immediately (user is not verified yet)
+      // Use window.location to ensure redirect happens before any other effects
+      if (typeof window !== 'undefined' && !user.is_verified) {
+        // Use setTimeout to ensure state is set first
+        setTimeout(() => {
+          window.location.href = `/verify-email?email=${encodeURIComponent(user.email)}`;
+        }, 100);
+        return; // Exit early to prevent further execution
+      }
     } catch (error: any) {
       console.error('Registration error in AuthContext:', error);
       throw new Error(error.message || 'Registration failed');
@@ -138,8 +163,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Function to refresh user profile
+  const refreshProfile = async () => {
+    try {
+      const profile = await authAPI.getProfile();
+      setUser(profile);
+      storage.saveUserData(profile);
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

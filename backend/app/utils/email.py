@@ -7,6 +7,7 @@ from msal import ConfidentialClientApplication
 from typing import Optional
 from dotenv import load_dotenv
 from pathlib import Path
+from datetime import datetime
 
 # Load .env file from multiple possible locations
 # Try root .env first (for local development), then backend/.env
@@ -40,6 +41,8 @@ SENDER_USER = os.getenv("MSAL_SENDER_USER", "iman.dorri@synvoy.com")
 # FROM_ALIAS: The alias email that appears as "From" (contact@synvoy.com)
 FROM_ALIAS = os.getenv("MSAL_FROM_ALIAS", "contact@synvoy.com")
 CONTACT_EMAIL = os.getenv("CONTACT_EMAIL", "contact@synvoy.com")
+# NO_REPLY_ALIAS: The alias email for verification emails (no-reply@synvoy.com)
+NO_REPLY_ALIAS = os.getenv("MSAL_NO_REPLY_ALIAS", "no-reply@synvoy.com")
 
 # Debug: Print loaded values (without secrets)
 if not all([TENANT_ID, CLIENT_ID, CLIENT_SECRET, SENDER_USER]):
@@ -222,4 +225,137 @@ Reply directly to this email to respond to {name} ({email}).</em></p>
         return False
     except Exception as e:
         print(f"Error sending email: {e}")
+        return False
+
+def send_verification_email(
+    email: str,
+    name: str,
+    code: str
+) -> bool:
+    """
+    Send email verification code to user using Microsoft Graph API
+    
+    Args:
+        email: Recipient's email address
+        name: Recipient's name
+        code: 6-digit verification code
+    
+    Returns:
+        True if email sent successfully, False otherwise
+    """
+    # Check if MSAL is configured
+    if not all([TENANT_ID, CLIENT_ID, CLIENT_SECRET, SENDER_USER]):
+        print("Warning: MSAL not configured. Verification email not sent.")
+        print("Please set MSAL_TENANT_ID, MSAL_CLIENT_ID, MSAL_CLIENT_SECRET, and MSAL_SENDER_USER in .env file")
+        return False
+    
+    try:
+        # Get access token
+        access_token = get_access_token()
+        if not access_token:
+            print("Failed to get access token for verification email")
+            return False
+        
+        # Create email body
+        body_html = f"""<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">Verify Your Email</h1>
+    </div>
+    <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px; margin-bottom: 20px;">Hi {name},</p>
+        <p style="font-size: 16px; margin-bottom: 20px;">Thank you for signing up for Synvoy! Please verify your email address by entering the code below:</p>
+        
+        <div style="background: #f3f4f6; border: 2px dashed #2563eb; border-radius: 8px; padding: 20px; text-align: center; margin: 30px 0;">
+            <p style="font-size: 14px; color: #6b7280; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px;">Your Verification Code</p>
+            <p style="font-size: 36px; font-weight: bold; color: #2563eb; margin: 0; letter-spacing: 8px; font-family: 'Courier New', monospace;">{code}</p>
+        </div>
+        
+        <p style="font-size: 14px; color: #6b7280; margin-bottom: 20px;">This code will expire in <strong>60 minutes</strong>.</p>
+        
+        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="font-size: 14px; color: #92400e; margin: 0;">
+                <strong>⚠️ Can't find this email?</strong><br>
+                Please check your spam or junk folder. If you still don't see it, you can request a new code.
+            </p>
+        </div>
+        
+        <p style="font-size: 14px; color: #6b7280; margin-top: 30px; margin-bottom: 0;">If you didn't create an account with Synvoy, please ignore this email.</p>
+    </div>
+    <div style="text-align: center; margin-top: 20px; padding: 20px; color: #9ca3af; font-size: 12px;">
+        <p style="margin: 0;">© {datetime.now().year} Synvoy. All rights reserved.</p>
+        <p style="margin: 5px 0 0 0;">This is an automated email, please do not reply.</p>
+    </div>
+</body>
+</html>"""
+        
+        body_text = f"""Verify Your Email
+
+Hi {name},
+
+Thank you for signing up for Synvoy! Please verify your email address by entering the code below:
+
+Your Verification Code: {code}
+
+This code will expire in 60 minutes.
+
+⚠️ Can't find this email?
+Please check your spam or junk folder. If you still don't see it, you can request a new code.
+
+If you didn't create an account with Synvoy, please ignore this email.
+
+© {datetime.now().year} Synvoy. All rights reserved.
+This is an automated email, please do not reply.
+"""
+        
+        # Prepare email message for Microsoft Graph API
+        email_message = {
+            "message": {
+                "subject": "Verify Your Synvoy Email Address",
+                "body": {
+                    "contentType": "HTML",
+                    "content": body_html
+                },
+                "from": {
+                    "emailAddress": {
+                        "address": NO_REPLY_ALIAS,
+                        "name": "Synvoy"
+                    }
+                },
+                "toRecipients": [
+                    {
+                        "emailAddress": {
+                            "address": email,
+                            "name": name
+                        }
+                    }
+                ]
+            },
+            "saveToSentItems": "true"
+        }
+        
+        # Send email via Microsoft Graph API
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+        
+        # Use SENDER_USER (actual mailbox) for the API endpoint
+        url = f"{GRAPH_API_ENDPOINT}/users/{SENDER_USER}/sendMail"
+        
+        response = requests.post(url, json=email_message, headers=headers)
+        
+        if response.status_code == 202:
+            print(f"Verification email sent successfully to {email}")
+            return True
+        else:
+            print(f"Failed to send verification email. Status: {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Request error sending verification email: {e}")
+        return False
+    except Exception as e:
+        print(f"Error sending verification email: {e}")
         return False

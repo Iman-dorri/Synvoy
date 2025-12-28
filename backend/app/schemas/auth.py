@@ -12,6 +12,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6, max_length=72)  # Bcrypt limit is 72 bytes
+    tester_code: str = Field(..., description="Tester code required for registration during development")
 
 class UserLogin(BaseModel):
     username_or_email: str = Field(..., min_length=1, description="Username or email address")
@@ -41,3 +42,18 @@ class TokenWithUser(BaseModel):
 class TokenData(BaseModel):
     user_id: Optional[str] = None
     email: Optional[str] = None
+
+class VerifyEmailRequest(BaseModel):
+    email: EmailStr
+    code: str = Field(..., min_length=6, max_length=6, description="6-digit verification code")
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+class VerificationStatusResponse(BaseModel):
+    email: str
+    is_verified: bool
+    code_expires_at: Optional[datetime] = None
+    account_deletion_at: Optional[datetime] = None
+    time_remaining_seconds: Optional[int] = None
+    deletion_time_remaining_seconds: Optional[int] = None

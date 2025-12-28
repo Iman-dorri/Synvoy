@@ -123,9 +123,16 @@ export default function ContactPage() {
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
             Contact Us
           </h1>
-          <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-4">
             Have a question or feedback? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
           </p>
+          <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-800 px-4 py-3 rounded-lg max-w-2xl mx-auto">
+            <p className="text-sm font-semibold mb-1">🚧 Application in Development</p>
+            <p className="text-sm">
+              The application is currently in development. If you'd like to request a <strong>tester code</strong> to create an account, 
+              please mention it in your message. Our support team will review your request and send you a tester code via email if approved.
+            </p>
+          </div>
         </div>
 
         {/* Contact Form Card */}

@@ -23,3 +23,6 @@ pydantic[email]==2.9.2
 # Email (Microsoft Graph API via MSAL)
 msal==1.28.0
 requests==2.32.3
+
+# Background tasks
+APScheduler==3.10.4

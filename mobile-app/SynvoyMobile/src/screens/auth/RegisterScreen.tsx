@@ -55,7 +55,11 @@ const RegisterScreen = ({ navigation }: any) => {
     }
 
     try {
-      await dispatch(register(formData)).unwrap();
+      const result = await dispatch(register(formData)).unwrap();
+      // After registration, user is not verified, redirect to verification screen
+      if (result?.user && !result.user.is_verified) {
+        navigation.navigate('VerifyEmail' as never, { email: formData.email } as never);
+      }
     } catch (err: any) {
       Alert.alert('Registration Failed', err || 'Please try again');
     }

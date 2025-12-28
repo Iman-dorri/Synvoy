@@ -41,11 +41,13 @@ export default function HomePage() {
     setMounted(true)
   }, [])
 
-  // Redirect authenticated users to dashboard
+  // Redirect authenticated users to dashboard (only if verified)
+  // Don't auto-redirect unverified users - let them stay on home page if they want
   useEffect(() => {
-    if (!isLoading && user) {
+    if (!isLoading && user && user.is_verified) {
       router.push('/dashboard')
     }
+    // Removed auto-redirect for unverified users - they can manually go to verification page
   }, [user, isLoading, router])
 
   // Intersection Observer for scroll animations with direction awareness

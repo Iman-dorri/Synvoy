@@ -174,6 +174,7 @@ export const authAPI = {
     email: string;
     password: string;
     phone?: string;
+    tester_code: string;
   }) => {
     try {
       const response = await api.post('/auth/register', userData);
@@ -241,6 +242,41 @@ export const authAPI = {
       localStorage.removeItem('user_data');
     }
     return true;
+  },
+
+  // Verify email
+  verifyEmail: async (email: string, code: string) => {
+    try {
+      const response = await api.post('/auth/verify-email', {
+        email,
+        code,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Verification failed');
+    }
+  },
+
+  // Resend verification code
+  resendVerification: async (email: string) => {
+    try {
+      const response = await api.post('/auth/resend-verification', {
+        email,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to resend verification code');
+    }
+  },
+
+  // Get verification status
+  getVerificationStatus: async (email: string) => {
+    try {
+      const response = await api.get(`/auth/verification-status?email=${encodeURIComponent(email)}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to get verification status');
+    }
   },
 };
 

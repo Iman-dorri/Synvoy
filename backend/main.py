@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 import uvicorn
 from dotenv import load_dotenv
 import os
@@ -62,6 +64,30 @@ async def root():
         "docs": "/docs",
         "health": "/health"
     }
+
+# Setup background scheduler for cleanup tasks
+scheduler = BackgroundScheduler()
+from app.utils.cleanup import cleanup_unverified_accounts
+
+# Schedule cleanup task to run every 30 minutes
+scheduler.add_job(
+    cleanup_unverified_accounts,
+    trigger=IntervalTrigger(minutes=30),
+    id='cleanup_unverified_accounts',
+    name='Cleanup unverified accounts older than 2 hours',
+    replace_existing=True
+)
+
+# Start scheduler when app starts
+@app.on_event("startup")
+async def startup_event():
+    scheduler.start()
+    print("Background scheduler started: Cleanup task will run every 30 minutes")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    scheduler.shutdown()
+    print("Background scheduler stopped")
 
 if __name__ == "__main__":
     uvicorn.run(

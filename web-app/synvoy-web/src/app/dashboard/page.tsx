@@ -16,11 +16,22 @@ export default function DashboardPage() {
   const connectionsIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const tripsIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const { refreshProfile } = useAuth();
+
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/');
+    } else if (!isLoading && user && !user.is_verified) {
+      // Redirect unverified users to verification page
+      router.push(`/verify-email?email=${encodeURIComponent(user.email)}`);
+    } else if (!isLoading && user && refreshProfile) {
+      // Refresh profile once when dashboard loads to get latest status (especially after verification)
+      // Only refresh if status is still pending
+      if (user.status === 'pending_verification') {
+        refreshProfile();
+      }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, refreshProfile]);
 
   // Fetch unread message count
   useEffect(() => {

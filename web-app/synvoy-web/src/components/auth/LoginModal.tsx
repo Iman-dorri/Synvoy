@@ -85,6 +85,9 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
       if (err.message === 'user_not_registered' || err.message?.includes('user_not_registered')) {
         setIsUserNotRegistered(true);
         setError('');
+      } else if (err.message === 'email_not_verified' || err.message?.includes('email_not_verified')) {
+        // Redirect handled in AuthContext, just close modal
+        onClose();
       } else {
         setError(err.message || 'Login failed. Please try again.');
         setIsUserNotRegistered(false);

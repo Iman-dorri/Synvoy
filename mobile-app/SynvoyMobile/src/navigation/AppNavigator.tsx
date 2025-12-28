@@ -11,6 +11,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 // Auth screens
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
+import VerifyEmailScreen from '../screens/auth/VerifyEmailScreen';
 
 // Main screens
 import DashboardScreen from '../screens/main/DashboardScreen';
@@ -205,6 +206,11 @@ const AppNavigator = () => {
             <>
               <Stack.Screen name="Login" component={LoginScreen} />
               <Stack.Screen name="Register" component={RegisterScreen} />
+              <Stack.Screen 
+                name="VerifyEmail" 
+                component={VerifyEmailScreen}
+                options={{ headerShown: false }}
+              />
             </>
           )}
         </Stack.Navigator>

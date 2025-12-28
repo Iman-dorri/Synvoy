@@ -31,9 +31,23 @@ const LoginScreen = ({ navigation }: any) => {
     }
 
     try {
-      await dispatch(login({ usernameOrEmail, password })).unwrap();
+      const result = await dispatch(login({ usernameOrEmail, password })).unwrap();
+      // Check if user is not verified
+      if (result?.user && !result.user.is_verified) {
+        navigation.navigate('VerifyEmail' as never, { email: result.user.email } as never);
+        return;
+      }
     } catch (err: any) {
       const errorMessage = typeof err === 'string' ? err : err?.message || 'Invalid credentials';
+      // Check if error is email_not_verified
+      if (errorMessage === 'email_not_verified' || errorMessage?.includes('email_not_verified')) {
+        // Try to get email from usernameOrEmail or fetch user
+        const email = usernameOrEmail.includes('@') ? usernameOrEmail : '';
+        if (email) {
+          navigation.navigate('VerifyEmail' as never, { email } as never);
+          return;
+        }
+      }
       Alert.alert('Login Failed', errorMessage);
       console.error('Login error details:', err);
     }

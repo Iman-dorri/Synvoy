@@ -158,6 +158,8 @@ docker-compose rm -f backend frontend
 
 # Rebuild and start them
 docker-compose up -d --build backend frontend
+# if needs:
+docker-compose restart nginx
 
 # Access n8n on Server from a local machine:
 # From your local machine, create SSH tunnel:

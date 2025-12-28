@@ -132,6 +132,36 @@ class ApiService {
     return response.data;
   }
 
+  async verifyEmail(email: string, code: string) {
+    try {
+      const response = await this.client.post('/auth/verify-email', { email, code });
+      return response.data;
+    } catch (error: any) {
+      console.error('API verify email error:', error);
+      throw error;
+    }
+  }
+
+  async resendVerification(email: string) {
+    try {
+      const response = await this.client.post('/auth/resend-verification', { email });
+      return response.data;
+    } catch (error: any) {
+      console.error('API resend verification error:', error);
+      throw error;
+    }
+  }
+
+  async getVerificationStatus(email: string) {
+    try {
+      const response = await this.client.get(`/auth/verification-status?email=${encodeURIComponent(email)}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('API get verification status error:', error);
+      throw error;
+    }
+  }
+
   // User endpoints
   async getProfile() {
     const response = await this.client.get('/auth/profile');

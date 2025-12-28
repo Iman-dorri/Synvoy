@@ -46,7 +46,11 @@ export const login = createAsyncThunk(
       let errorMessage = 'Login failed';
       if (error.response) {
         // Server responded with error
-        errorMessage = error.response.data?.detail || error.response.data?.message || `Server error: ${error.response.status}`;
+        if (error.response.status === 403 && error.response.data?.detail === 'email_not_verified') {
+          errorMessage = 'email_not_verified';
+        } else {
+          errorMessage = error.response.data?.detail || error.response.data?.message || `Server error: ${error.response.status}`;
+        }
       } else if (error.request) {
         // Request made but no response (network error)
         errorMessage = 'Cannot connect to server. Check your network connection and ensure the backend is running.';
