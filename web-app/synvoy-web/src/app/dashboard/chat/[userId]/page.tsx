@@ -6,6 +6,42 @@ import { useRouter, useParams } from 'next/navigation';
 import { messageAPI } from '@/lib/api';
 import Link from 'next/link';
 
+// Helper function to format date for separators
+const formatDateSeparator = (date: Date): string => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const messageDate = new Date(date);
+  messageDate.setHours(0, 0, 0, 0);
+  
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  if (messageDate.getTime() === today.getTime()) {
+    return 'Today';
+  } else if (messageDate.getTime() === yesterday.getTime()) {
+    return 'Yesterday';
+  } else {
+    // Format as "Month Day, Year" (e.g., "December 29, 2024")
+    return messageDate.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  }
+};
+
+// Helper function to check if two messages are on different dates
+const isDifferentDate = (date1: string | Date, date2: string | Date): boolean => {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  
+  d1.setHours(0, 0, 0, 0);
+  d2.setHours(0, 0, 0, 0);
+  
+  return d1.getTime() !== d2.getTime();
+};
+
 export default function ChatPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
@@ -118,6 +154,13 @@ export default function ChatPage() {
     setError('');
     try {
       const fetchedMessages = await messageAPI.getConversation(userId);
+      
+      // Debug: Log message data to check if is_delivered and is_read are present
+      if (fetchedMessages.length > 0) {
+        console.log('Sample message data:', fetchedMessages[0]);
+        console.log('is_delivered:', fetchedMessages[0].is_delivered);
+        console.log('is_read:', fetchedMessages[0].is_read);
+      }
       
       // Only update if messages actually changed to prevent unnecessary re-renders
       setMessages(prevMessages => {
@@ -253,13 +296,27 @@ export default function ChatPage() {
           </div>
         ) : messages.length > 0 ? (
           <div className="space-y-3 sm:space-y-4">
-            {messages.map((message) => {
+            {messages.map((message, index) => {
               const isMyMessage = message.sender_id === user.id;
+              const showDateSeparator = index === 0 || isDifferentDate(
+                messages[index - 1].created_at,
+                message.created_at
+              );
+              
               return (
-                <div
-                  key={message.id}
-                  className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
-                >
+                <div key={message.id}>
+                  {showDateSeparator && (
+                    <div className="flex items-center justify-center my-4 sm:my-6">
+                      <div className="bg-gray-200 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">
+                        <span className="text-xs sm:text-sm font-medium text-gray-600">
+                          {formatDateSeparator(new Date(message.created_at))}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <div
+                    className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
+                  >
                   <div
                     className={`max-w-[75%] sm:max-w-xs lg:max-w-md px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl ${
                       isMyMessage
@@ -268,12 +325,57 @@ export default function ChatPage() {
                     }`}
                   >
                     <p className="break-words text-sm sm:text-base">{message.content}</p>
-                    <p className={`text-[10px] sm:text-xs mt-1 ${
+                    <div className={`flex items-center justify-end gap-1 mt-1 ${
                       isMyMessage ? 'text-blue-100' : 'text-gray-500'
                     }`}>
-                      {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
+                      <p className={`text-[10px] sm:text-xs`}>
+                        {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                      {isMyMessage && (
+                        <div className="flex items-center ml-1">
+                          {message.is_read ? (
+                            // Two colored ticks (read) - Rounded checkmark style
+                            <div className="flex items-center -space-x-0.5">
+                              <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5" viewBox="0 0 16 16" fill="none">
+                                <defs>
+                                  <linearGradient id={`readTick1-${message.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="#ffffff" />
+                                    <stop offset="100%" stopColor="#a5f3fc" />
+                                  </linearGradient>
+                                </defs>
+                                <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill={`url(#readTick1-${message.id})`} />
+                              </svg>
+                              <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5" viewBox="0 0 16 16" fill="none">
+                                <defs>
+                                  <linearGradient id={`readTick2-${message.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="#ffffff" />
+                                    <stop offset="100%" stopColor="#a5f3fc" />
+                                  </linearGradient>
+                                </defs>
+                                <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill={`url(#readTick2-${message.id})`} />
+                              </svg>
+                            </div>
+                          ) : message.is_delivered ? (
+                            // Two white/light gray ticks (delivered) - Rounded checkmark style
+                            <div className="flex items-center -space-x-0.5">
+                              <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5" viewBox="0 0 16 16" fill="#e0e7ff">
+                                <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
+                              </svg>
+                              <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5" viewBox="0 0 16 16" fill="#e0e7ff">
+                                <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
+                              </svg>
+                            </div>
+                          ) : (
+                            // One white/light gray tick (sent) - Rounded checkmark style
+                            <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5" viewBox="0 0 16 16" fill="#e0e7ff">
+                              <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
+                            </svg>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
+                </div>
                 </div>
               );
             })}

@@ -76,6 +76,7 @@ async def send_message(
             receiver_id=None,
             trip_id=trip_uuid,
             content=message_data.content,
+            is_delivered=True,  # Trip messages are immediately "delivered" to all participants
             is_read=False
         )
         
@@ -89,6 +90,7 @@ async def send_message(
             receiver_id=None,
             trip_id=str(new_message.trip_id),
             content=new_message.content,
+            is_delivered=new_message.is_delivered,
             is_read=new_message.is_read,
             created_at=new_message.created_at
         )
@@ -146,6 +148,7 @@ async def send_message(
         receiver_id=receiver_uuid,
         trip_id=None,
         content=message_data.content,
+        is_delivered=False,  # Not delivered yet
         is_read=False
     )
     
@@ -159,6 +162,7 @@ async def send_message(
         receiver_id=str(new_message.receiver_id),
         trip_id=None,
         content=new_message.content,
+        is_delivered=new_message.is_delivered,
         is_read=new_message.is_read,
         created_at=new_message.created_at
     )
@@ -207,10 +211,13 @@ async def get_trip_messages(
         Message.trip_id == trip_uuid
     ).order_by(desc(Message.created_at)).limit(limit).offset(offset).all()
     
-    # Mark messages as read if they were sent to current user
+    # Mark messages as delivered and read if they were sent to current user
+    # Note: Trip messages are already marked as delivered when created
     for message in messages:
-        if message.sender_id != current_user.id and not message.is_read:
-            message.is_read = True
+        if message.sender_id != current_user.id:
+            # Mark as read when participant views the conversation
+            if not message.is_read:
+                message.is_read = True
     db.commit()
     
     # Get all participants for user info
@@ -235,6 +242,7 @@ async def get_trip_messages(
             receiver_id=None,
             trip_id=str(msg.trip_id),
             content=msg.content,
+            is_delivered=msg.is_delivered,
             is_read=msg.is_read,
             created_at=msg.created_at,
             sender={
@@ -307,10 +315,15 @@ async def get_conversation(
         )
     ).order_by(desc(Message.created_at)).limit(limit).offset(offset).all()
     
-    # Mark messages as read if they were sent to current user
+    # Mark messages as delivered and read if they were sent to current user
     for message in messages:
-        if message.receiver_id == current_user.id and not message.is_read:
-            message.is_read = True
+        if message.receiver_id == current_user.id:
+            # Mark as delivered when receiver fetches the conversation
+            if not message.is_delivered:
+                message.is_delivered = True
+            # Mark as read when receiver views the conversation
+            if not message.is_read:
+                message.is_read = True
     db.commit()
     
     # Get user info
@@ -324,6 +337,7 @@ async def get_conversation(
             receiver_id=str(msg.receiver_id) if msg.receiver_id else None,
             trip_id=None,
             content=msg.content,
+            is_delivered=msg.is_delivered,
             is_read=msg.is_read,
             created_at=msg.created_at,
             sender={
@@ -451,6 +465,7 @@ async def get_conversations(
                 receiver_id=str(last_message.receiver_id),
                 trip_id=None,
                 content=last_message.content,
+                is_delivered=last_message.is_delivered,
                 is_read=last_message.is_read,
                 created_at=last_message.created_at
             ) if last_message else None,
@@ -494,6 +509,7 @@ async def get_conversations(
                 receiver_id=None,
                 trip_id=str(last_message.trip_id),
                 content=last_message.content,
+                is_delivered=last_message.is_delivered,
                 is_read=last_message.is_read,
                 created_at=last_message.created_at
             ) if last_message else None,

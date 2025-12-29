@@ -27,3 +27,4 @@ class VerificationToken(Base):
         from datetime import datetime, timezone
         return datetime.now(timezone.utc) > self.expires_at
 
+

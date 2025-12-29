@@ -13,6 +13,7 @@ class MessageResponse(BaseModel):
     receiver_id: Optional[str] = None
     trip_id: Optional[str] = None
     content: str
+    is_delivered: bool
     is_read: bool
     created_at: datetime
     
@@ -25,6 +26,7 @@ class MessageWithUser(BaseModel):
     receiver_id: Optional[str] = None
     trip_id: Optional[str] = None
     content: str
+    is_delivered: bool
     is_read: bool
     created_at: datetime
     sender: Optional[dict] = None

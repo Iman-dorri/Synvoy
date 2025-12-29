@@ -13,7 +13,8 @@ class Message(Base):
     receiver_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)  # Nullable for group chats
     trip_id = Column(UUID(as_uuid=True), ForeignKey("trips.id"), nullable=True, index=True)  # For group chats
     content = Column(Text, nullable=False)
-    is_read = Column(Boolean, default=False, nullable=False)
+    is_delivered = Column(Boolean, default=False, nullable=False)  # Message delivered to receiver
+    is_read = Column(Boolean, default=False, nullable=False)  # Message read by receiver
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     
     # Relationships

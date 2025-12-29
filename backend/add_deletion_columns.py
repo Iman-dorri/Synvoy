@@ -86,3 +86,4 @@ def add_deletion_columns():
 if __name__ == "__main__":
     add_deletion_columns()
 
+

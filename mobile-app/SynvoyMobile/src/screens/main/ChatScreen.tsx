@@ -14,6 +14,43 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { theme, colors } from '../../theme';
 import apiService from '../../services/api';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+
+// Helper function to format date for separators
+const formatDateSeparator = (date: Date): string => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const messageDate = new Date(date);
+  messageDate.setHours(0, 0, 0, 0);
+  
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  if (messageDate.getTime() === today.getTime()) {
+    return 'Today';
+  } else if (messageDate.getTime() === yesterday.getTime()) {
+    return 'Yesterday';
+  } else {
+    // Format as "Month Day, Year" (e.g., "December 29, 2024")
+    return messageDate.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  }
+};
+
+// Helper function to check if two messages are on different dates
+const isDifferentDate = (date1: string | Date, date2: string | Date): boolean => {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  
+  d1.setHours(0, 0, 0, 0);
+  d2.setHours(0, 0, 0, 0);
+  
+  return d1.getTime() !== d2.getTime();
+};
 
 const ChatScreen = ({ route, navigation }: any) => {
   const { userId } = route.params || {};
@@ -102,18 +139,57 @@ const ChatScreen = ({ route, navigation }: any) => {
     }
   };
 
-  const renderMessage = ({ item }: any) => {
+  const renderMessage = ({ item, index }: any) => {
     const isMyMessage = item.sender_id === user?.id;
+    // Check if we need to show a date separator
+    // Note: messages array is reversed, so index 0 is the oldest message
+    const showDateSeparator = index === 0 || (index > 0 && messages[index - 1] && isDifferentDate(
+      messages[index - 1].created_at,
+      item.created_at
+    ));
     
     return (
-      <View style={[styles.messageContainer, isMyMessage ? styles.myMessageContainer : styles.otherMessageContainer]}>
-        <View style={[styles.messageBubble, isMyMessage ? styles.myMessageBubble : styles.otherMessageBubble]}>
-          <Text style={[styles.messageText, isMyMessage ? styles.myMessageText : styles.otherMessageText]}>
-            {item.content}
-          </Text>
-          <Text style={[styles.messageTime, isMyMessage ? styles.myMessageTime : styles.otherMessageTime]}>
-            {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </Text>
+      <View>
+        {showDateSeparator && (
+          <View style={styles.dateSeparatorContainer}>
+            <View style={styles.dateSeparator}>
+              <Text style={styles.dateSeparatorText}>
+                {formatDateSeparator(new Date(item.created_at))}
+              </Text>
+            </View>
+          </View>
+        )}
+        <View style={[styles.messageContainer, isMyMessage ? styles.myMessageContainer : styles.otherMessageContainer]}>
+          <View style={[styles.messageBubble, isMyMessage ? styles.myMessageBubble : styles.otherMessageBubble]}>
+            <Text style={[styles.messageText, isMyMessage ? styles.myMessageText : styles.otherMessageText]}>
+              {item.content}
+            </Text>
+            <View style={[styles.messageTimeContainer, isMyMessage ? styles.myMessageTimeContainer : styles.otherMessageTimeContainer]}>
+              <Text style={[styles.messageTime, isMyMessage ? styles.myMessageTime : styles.otherMessageTime]}>
+                {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+              {isMyMessage && (
+                <View style={styles.tickContainer}>
+                  {item.is_read ? (
+                    // Two colored ticks (read) - White/light cyan for visibility on blue background
+                    <View style={styles.doubleTickContainer}>
+                      <Icon name="check" size={14} color="#ffffff" style={styles.tickIcon} />
+                      <Icon name="check" size={14} color="#a5f3fc" style={[styles.tickIcon, styles.secondTick]} />
+                    </View>
+                  ) : item.is_delivered ? (
+                    // Two white/light gray ticks (delivered) - visible on blue background
+                    <View style={styles.doubleTickContainer}>
+                      <Icon name="check" size={14} color="#e0e7ff" style={styles.tickIcon} />
+                      <Icon name="check" size={14} color="#e0e7ff" style={[styles.tickIcon, styles.secondTick]} />
+                    </View>
+                  ) : (
+                    // One white/light gray tick (sent) - visible on blue background
+                    <Icon name="check" size={14} color="#e0e7ff" />
+                  )}
+                </View>
+              )}
+            </View>
+          </View>
         </View>
       </View>
     );
@@ -253,6 +329,18 @@ const styles = StyleSheet.create({
   otherMessageText: {
     color: colors.text.primary,
   },
+  messageTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: theme.spacing.xs,
+  },
+  myMessageTimeContainer: {
+    justifyContent: 'flex-end',
+  },
+  otherMessageTimeContainer: {
+    justifyContent: 'flex-start',
+  },
   messageTime: {
     fontSize: theme.fontSize.xs,
   },
@@ -260,6 +348,34 @@ const styles = StyleSheet.create({
     color: colors.text.white + 'CC',
   },
   otherMessageTime: {
+    color: colors.text.secondary,
+  },
+  tickContainer: {
+    marginLeft: 4,
+  },
+  doubleTickContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tickIcon: {
+    marginLeft: -6,
+  },
+  secondTick: {
+    marginLeft: -8,
+  },
+  dateSeparatorContainer: {
+    alignItems: 'center',
+    marginVertical: theme.spacing.md,
+  },
+  dateSeparator: {
+    backgroundColor: colors.gray[200],
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.full,
+  },
+  dateSeparatorText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
     color: colors.text.secondary,
   },
   inputContainer: {
