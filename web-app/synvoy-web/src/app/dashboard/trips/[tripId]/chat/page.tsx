@@ -55,18 +55,38 @@ export default function TripChatPage() {
   const [initialLoad, setInitialLoad] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [showMenu, setShowMenu] = useState(false);
+  const [showGroupInfo, setShowGroupInfo] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
   const previousMessagesCountRef = useRef(0);
   const isInitialLoadRef = useRef(true);
   const isLoadingRef = useRef(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/');
     }
   }, [user, isLoading, router]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMenu]);
 
   useEffect(() => {
     if (user && tripId) {
@@ -274,6 +294,34 @@ export default function TripChatPage() {
                 <span className="relative z-10 hidden sm:inline">Back to Trip</span>
                 <span className="relative z-10 sm:hidden">Back</span>
               </Link>
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={() => setShowMenu(!showMenu)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  aria-label="Menu"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                  </svg>
+                </button>
+                {showMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        setShowGroupInfo(true);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Group Info
+                    </button>
+                    {/* Add more menu items here in the future */}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -426,6 +474,54 @@ export default function TripChatPage() {
           </form>
         </div>
       </div>
+
+      {/* Group Info Modal */}
+      {showGroupInfo && trip && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Group Info</h2>
+              <button
+                onClick={() => setShowGroupInfo(false)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="mb-4 sm:mb-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">Trip: {trip.title}</h3>
+              {trip.description && (
+                <p className="text-sm sm:text-base text-gray-600">{trip.description}</p>
+              )}
+            </div>
+            <div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3">
+                Participants ({trip.participants?.filter((p: any) => p.status === 'accepted').length || 0})
+              </h3>
+              <div className="space-y-2 sm:space-y-3">
+                {trip.participants?.filter((p: any) => p.status === 'accepted').map((participant: any) => (
+                  <div key={participant.id} className="flex items-center p-3 bg-gray-50 rounded-lg">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm sm:text-base font-medium text-gray-900 truncate">
+                        {participant.user?.first_name} {participant.user?.last_name}
+                        {participant.role === 'creator' && ' (Creator)'}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-600 truncate">@{participant.user?.username}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

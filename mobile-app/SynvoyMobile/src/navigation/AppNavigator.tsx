@@ -16,6 +16,7 @@ import VerifyEmailScreen from '../screens/auth/VerifyEmailScreen';
 // Main screens
 import DashboardScreen from '../screens/main/DashboardScreen';
 import TripsScreen from '../screens/main/TripsScreen';
+import TripDetailScreen from '../screens/main/TripDetailScreen';
 import ShoppingScreen from '../screens/main/ShoppingScreen';
 import SocialScreen from '../screens/main/SocialScreen';
 import MessagesScreen from '../screens/main/MessagesScreen';
@@ -149,6 +150,16 @@ const AppNavigator = () => {
                   headerStyle: { backgroundColor: '#ffffff' },
                   headerTintColor: '#1f2937',
                   headerTitleStyle: { fontWeight: '600' },
+                }}
+              />
+              <Stack.Screen 
+                name="TripDetail" 
+                component={TripDetailScreen}
+                options={{
+                  headerShown: false,
+                  ...TransitionPresets.SlideFromRightIOS,
+                  gestureEnabled: true,
+                  gestureDirection: 'horizontal',
                 }}
               />
               <Stack.Screen 

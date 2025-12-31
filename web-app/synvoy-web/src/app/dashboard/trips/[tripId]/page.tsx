@@ -54,8 +54,19 @@ export default function TripDetailPage() {
       // Filter out users already in the trip
       const participantIds = trip?.participants?.map((p: any) => p.user_id) || [];
       const available = connections.filter((conn: any) => {
-        const otherUserId = conn.user_id === user?.id ? conn.connected_user_id : conn.user_id;
-        return !participantIds.includes(otherUserId);
+        // Get the other user ID from the connection
+        // Use connected_user object if available, otherwise use IDs
+        const otherUser = conn.user_id === user?.id 
+          ? (conn.connected_user || { id: conn.connected_user_id })
+          : (conn.user || { id: conn.user_id });
+        const otherUserId = otherUser.id || (conn.user_id === user?.id ? conn.connected_user_id : conn.user_id);
+        // Filter out deleted users, users scheduled for deletion, and users already in the trip
+        // Check if user is deleted or scheduled for deletion
+        const isDeleted = otherUser.deleted_at != null;
+        const isScheduledForDeletion = otherUser.deletion_requested_at != null || otherUser.status === 'pending_deletion';
+        // Also filter out users with missing name/username (incomplete data)
+        const hasValidName = otherUser.first_name || otherUser.last_name || otherUser.username;
+        return otherUserId && !isDeleted && !isScheduledForDeletion && hasValidName && !participantIds.includes(otherUserId);
       });
       setAvailableConnections(available);
     } catch (err: any) {
@@ -344,8 +355,30 @@ export default function TripDetailPage() {
             ) : availableConnections.length > 0 ? (
               <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                 {availableConnections.map((conn: any) => {
-                  const otherUser = conn.user_id === user.id ? conn.connected_user : conn.user;
-                  const isSelected = selectedUsers.includes(otherUser.id);
+                  // Get the other user from the connection
+                  // Connection has connected_user object or we need to use IDs
+                  const otherUser = conn.user_id === user.id 
+                    ? (conn.connected_user || { 
+                        id: conn.connected_user_id, 
+                        first_name: '', 
+                        last_name: '', 
+                        username: '' 
+                      })
+                    : (conn.user || { 
+                        id: conn.user_id, 
+                        first_name: '', 
+                        last_name: '', 
+                        username: '' 
+                      });
+                  const otherUserId = otherUser.id || (conn.user_id === user.id ? conn.connected_user_id : conn.user_id);
+                  // Skip if user is deleted, scheduled for deletion, or has no valid name
+                  const isDeleted = otherUser.deleted_at != null;
+                  const isScheduledForDeletion = otherUser.deletion_requested_at != null || otherUser.status === 'pending_deletion';
+                  const hasValidName = otherUser.first_name || otherUser.last_name || otherUser.username;
+                  if (!otherUserId || isDeleted || isScheduledForDeletion || !hasValidName) {
+                    return null;
+                  }
+                  const isSelected = selectedUsers.includes(otherUserId);
                   return (
                     <label
                       key={conn.id}
@@ -358,9 +391,9 @@ export default function TripDetailPage() {
                         checked={isSelected}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setSelectedUsers([...selectedUsers, otherUser.id]);
+                            setSelectedUsers([...selectedUsers, otherUserId]);
                           } else {
-                            setSelectedUsers(selectedUsers.filter(id => id !== otherUser.id));
+                            setSelectedUsers(selectedUsers.filter(id => id !== otherUserId));
                           }
                         }}
                         className="mr-2 sm:mr-3"

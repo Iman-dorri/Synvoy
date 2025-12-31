@@ -229,7 +229,19 @@ async def get_connections(
         else:
             other_user_id = conn.user_id
         
-        other_user = db.query(User).filter(User.id == other_user_id).first()
+        other_user = db.query(User).filter(
+            User.id == other_user_id,
+            User.deleted_at.is_(None),  # Exclude deleted users
+            User.deletion_requested_at.is_(None)  # Exclude users scheduled for deletion
+        ).first()
+        
+        # Skip if user is deleted, scheduled for deletion, doesn't exist, or has no valid name/username
+        if not other_user:
+            continue
+        
+        # Additional check: skip if user has no valid name or username (incomplete data)
+        if not (other_user.first_name or other_user.last_name or other_user.username):
+            continue
         
         # Convert string status to enum
         status_enum = ConnectionStatus(conn.status) if conn.status else ConnectionStatus.PENDING
@@ -248,8 +260,11 @@ async def get_connections(
                 "first_name": other_user.first_name,
                 "last_name": other_user.last_name,
                 "phone": other_user.phone,
-                "avatar_url": other_user.avatar_url
-            } if other_user else None
+                "avatar_url": other_user.avatar_url,
+                "status": other_user.status,
+                "deleted_at": other_user.deleted_at.isoformat() if other_user.deleted_at else None,
+                "deletion_requested_at": other_user.deletion_requested_at.isoformat() if other_user.deletion_requested_at else None
+            }
         ))
     
     return result

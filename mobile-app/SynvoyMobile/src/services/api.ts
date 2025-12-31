@@ -246,6 +246,21 @@ class ApiService {
     return response.data;
   }
 
+  async inviteUsers(tripId: string, userIds: string[]) {
+    const response = await this.client.post(`/trips/${tripId}/invite`, { user_ids: userIds });
+    return response.data;
+  }
+
+  async updateParticipantStatus(tripId: string, participantId: string, status: 'accepted' | 'declined') {
+    const response = await this.client.put(`/trips/${tripId}/participants/${participantId}`, { status });
+    return response.data;
+  }
+
+  async removeParticipant(tripId: string, participantId: string) {
+    const response = await this.client.delete(`/trips/${tripId}/participants/${participantId}`);
+    return response.data;
+  }
+
   // Price alert endpoints
   async getAlerts() {
     const response = await this.client.get('/alerts');
@@ -347,6 +362,13 @@ class ApiService {
     return response.data;
   }
 
+  async getTripMessages(tripId: string, limit: number = 50, offset: number = 0) {
+    const response = await this.client.get(`/messages/trip/${tripId}`, {
+      params: { limit, offset },
+    });
+    return response.data;
+  }
+
   // Notification endpoints
   async getNotifications() {
     const response = await this.client.get('/notifications');
@@ -395,6 +417,9 @@ export const apiService = {
   createTrip: (data: any) => getApiService().createTrip(data),
   updateTrip: (id: string, data: any) => getApiService().updateTrip(id, data),
   deleteTrip: (id: string) => getApiService().deleteTrip(id),
+  inviteUsers: (tripId: string, userIds: string[]) => getApiService().inviteUsers(tripId, userIds),
+  updateParticipantStatus: (tripId: string, participantId: string, status: 'accepted' | 'declined') => getApiService().updateParticipantStatus(tripId, participantId, status),
+  removeParticipant: (tripId: string, participantId: string) => getApiService().removeParticipant(tripId, participantId),
   getAlerts: () => getApiService().getAlerts(),
   createAlert: (data: any) => getApiService().createAlert(data),
   updateAlert: (id: string, data: any) => getApiService().updateAlert(id, data),
@@ -412,6 +437,7 @@ export const apiService = {
         deleteConnection: (id: string) => getApiService().deleteConnection(id),
   getConversations: () => getApiService().getConversations(),
   getConversation: (userId: string, limit?: number, offset?: number) => getApiService().getConversation(userId, limit, offset),
+  getTripMessages: (tripId: string, limit?: number, offset?: number) => getApiService().getTripMessages(tripId, limit, offset),
   sendMessage: (content: string, receiverId?: string, tripId?: string) => getApiService().sendMessage(content, receiverId, tripId),
   getNotifications: () => getApiService().getNotifications(),
   markNotificationRead: (id: string) => getApiService().markNotificationRead(id),

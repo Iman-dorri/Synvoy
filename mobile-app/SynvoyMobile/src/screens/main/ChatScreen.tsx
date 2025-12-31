@@ -9,6 +9,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Modal,
+  ScrollView,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
@@ -53,7 +56,7 @@ const isDifferentDate = (date1: string | Date, date2: string | Date): boolean =>
 };
 
 const ChatScreen = ({ route, navigation }: any) => {
-  const { userId } = route.params || {};
+  const { userId, tripId } = route.params || {};
   const { user } = useSelector((state: RootState) => state.auth);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -61,11 +64,17 @@ const ChatScreen = ({ route, navigation }: any) => {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [otherUser, setOtherUser] = useState<any>(null);
+  const [trip, setTrip] = useState<any>(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showGroupInfo, setShowGroupInfo] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (user && userId) {
+    if (user && (userId || tripId)) {
+      if (tripId) {
+        fetchTrip();
+      }
       fetchMessages(true);
       
       // Poll for new messages every 5 seconds
@@ -77,7 +86,21 @@ const ChatScreen = ({ route, navigation }: any) => {
         }
       };
     }
-  }, [userId, user]);
+  }, [userId, tripId, user]);
+
+  useEffect(() => {
+    // Set header right button for menu
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => setShowMenu(!showMenu)}
+          style={{ padding: 8, marginRight: 8 }}
+        >
+          <Icon name="more-vert" size={24} color={colors.text.primary} />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, showMenu, tripId]);
 
   useEffect(() => {
     // Scroll to bottom when messages change
@@ -88,8 +111,20 @@ const ChatScreen = ({ route, navigation }: any) => {
     }
   }, [messages.length]);
 
+  const fetchTrip = async () => {
+    if (!tripId) return;
+    try {
+      const fetchedTrip = await apiService.getTrip(tripId);
+      setTrip(fetchedTrip);
+      // Set navigation title for trip chat
+      navigation.setOptions({ title: fetchedTrip.title || 'Trip Chat' });
+    } catch (err: any) {
+      console.error('Failed to fetch trip:', err);
+    }
+  };
+
   const fetchMessages = async (isInitial = false) => {
-    if (!userId) return;
+    if (!userId && !tripId) return;
     
     if (isInitial) {
       setLoading(true);
@@ -97,14 +132,19 @@ const ChatScreen = ({ route, navigation }: any) => {
     setError('');
     
     try {
-      const fetchedMessages = await apiService.getConversation(userId);
+      let fetchedMessages;
+      if (tripId) {
+        fetchedMessages = await apiService.getTripMessages(tripId);
+      } else {
+        fetchedMessages = await apiService.getConversation(userId!);
+      }
       
-      // Reverse to show oldest first (for FlatList)
-      const reversedMessages = [...fetchedMessages].reverse();
-      setMessages(reversedMessages);
+      // Keep messages in chronological order (oldest first, newest last)
+      // This matches the web app behavior - messages from top to bottom
+      setMessages(fetchedMessages);
       
-      // Extract other user info from messages
-      if (fetchedMessages.length > 0 && !otherUser) {
+      // Extract other user info from messages (only for 1-on-1 chat)
+      if (userId && fetchedMessages.length > 0 && !otherUser) {
         const firstMessage = fetchedMessages[0];
         const other = firstMessage.sender?.id === user?.id ? firstMessage.receiver : firstMessage.sender;
         if (other) {
@@ -122,13 +162,14 @@ const ChatScreen = ({ route, navigation }: any) => {
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !userId || sending) return;
+    if (!newMessage.trim() || sending) return;
+    if (!userId && !tripId) return;
     
     setSending(true);
     setError('');
     
     try {
-      await apiService.sendMessage(newMessage.trim(), userId);
+      await apiService.sendMessage(newMessage.trim(), userId, tripId);
       setNewMessage('');
       // Refresh messages
       await fetchMessages(false);
@@ -140,13 +181,21 @@ const ChatScreen = ({ route, navigation }: any) => {
   };
 
   const renderMessage = ({ item, index }: any) => {
+    // For trip chat, check if sender_id matches current user
+    // For 1-on-1 chat, same logic applies
     const isMyMessage = item.sender_id === user?.id;
     // Check if we need to show a date separator
-    // Note: messages array is reversed, so index 0 is the oldest message
+    // Messages are in chronological order: index 0 is oldest, last index is newest
     const showDateSeparator = index === 0 || (index > 0 && messages[index - 1] && isDifferentDate(
       messages[index - 1].created_at,
       item.created_at
     ));
+    
+    // For group chats (tripId exists), show sender name for messages from other users
+    const showSenderName = tripId && !isMyMessage && item.sender;
+    const senderName = showSenderName 
+      ? `${item.sender.first_name || ''} ${item.sender.last_name || ''}`.trim() || item.sender.username || 'Unknown'
+      : null;
     
     return (
       <View>
@@ -161,6 +210,11 @@ const ChatScreen = ({ route, navigation }: any) => {
         )}
         <View style={[styles.messageContainer, isMyMessage ? styles.myMessageContainer : styles.otherMessageContainer]}>
           <View style={[styles.messageBubble, isMyMessage ? styles.myMessageBubble : styles.otherMessageBubble]}>
+            {showSenderName && (
+              <Text style={styles.senderName}>
+                {senderName}
+              </Text>
+            )}
             <Text style={[styles.messageText, isMyMessage ? styles.myMessageText : styles.otherMessageText]}>
               {item.content}
             </Text>
@@ -205,6 +259,7 @@ const ChatScreen = ({ route, navigation }: any) => {
   }
 
   return (
+    <>
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -253,7 +308,164 @@ const ChatScreen = ({ route, navigation }: any) => {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Menu Dropdown */}
+      {showMenu && (
+        <Modal
+          visible={showMenu}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowMenu(false)}
+        >
+          <TouchableWithoutFeedback onPress={() => setShowMenu(false)}>
+            <View style={styles.dropdownOverlay}>
+              <TouchableWithoutFeedback>
+                <View style={[styles.dropdownMenu, { top: Platform.OS === 'ios' ? 100 : 60, right: 16 }]}>
+                  {tripId && (
+                    <TouchableOpacity
+                      style={styles.dropdownMenuItem}
+                      onPress={() => {
+                        console.log('Group Info clicked, tripId:', tripId);
+                        setShowMenu(false);
+                        setShowGroupInfo(true);
+                        console.log('showGroupInfo set to:', true);
+                      }}
+                    >
+                      <Icon name="info" size={20} color={colors.text.primary} />
+                      <Text style={styles.dropdownMenuItemText}>Group Info</Text>
+                    </TouchableOpacity>
+                  )}
+                  {/* Add more menu items here in the future */}
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      )}
+
     </KeyboardAvoidingView>
+    
+    {/* Group Info Modal - Outside KeyboardAvoidingView */}
+    {showGroupInfo && (
+      <Modal
+        visible={true}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowGroupInfo(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.groupInfoModal}>
+            {/* Header */}
+            <View style={styles.groupInfoHeader}>
+              <View style={styles.groupInfoHeaderContent}>
+                <Text style={styles.groupInfoTitle}>Group Info</Text>
+                <TouchableOpacity
+                  onPress={() => setShowGroupInfo(false)}
+                  style={styles.closeButton}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Icon name="close" size={24} color={colors.text.primary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {tripId && trip ? (
+              <ScrollView 
+                style={styles.groupInfoContent}
+                contentContainerStyle={styles.groupInfoContentContainer}
+                showsVerticalScrollIndicator={false}
+              >
+                {/* Trip Info Card */}
+                <View style={styles.tripInfoCard}>
+                  <View style={styles.tripIconContainer}>
+                    <Icon name="flight" size={28} color={colors.primary[600]} />
+                  </View>
+                  <View style={styles.tripInfoContent}>
+                    <Text style={styles.tripTitle}>{trip.title}</Text>
+                    {trip.description && (
+                      <Text style={styles.tripDescription} numberOfLines={3}>
+                        {trip.description}
+                      </Text>
+                    )}
+                    <View style={styles.tripMetaContainer}>
+                      {trip.start_date && (
+                        <View style={styles.tripMetaItem}>
+                          <Icon name="calendar-today" size={16} color={colors.text.secondary} />
+                          <Text style={styles.tripMetaText}>
+                            {new Date(trip.start_date).toLocaleDateString()}
+                          </Text>
+                        </View>
+                      )}
+                      {trip.budget && (
+                        <View style={styles.tripMetaItem}>
+                          <Icon name="attach-money" size={16} color={colors.text.secondary} />
+                          <Text style={styles.tripMetaText}>${trip.budget}</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                </View>
+
+                {/* Participants Section */}
+                <View style={styles.participantsSection}>
+                  <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>
+                      Participants
+                    </Text>
+                    <View style={styles.participantCountBadge}>
+                      <Text style={styles.participantCountText}>
+                        {trip.participants?.filter((p: any) => p.status === 'accepted').length || 0}
+                      </Text>
+                    </View>
+                  </View>
+                  {trip.participants?.filter((p: any) => p.status === 'accepted').length > 0 ? (
+                    <View style={styles.participantsList}>
+                      {trip.participants?.filter((p: any) => p.status === 'accepted').map((participant: any) => (
+                        <View key={participant.id} style={styles.participantCard}>
+                          <View style={styles.participantAvatar}>
+                            <Icon name="person" size={24} color={colors.primary[600]} />
+                          </View>
+                          <View style={styles.participantInfo}>
+                            <View style={styles.participantNameRow}>
+                              <Text style={styles.participantName} numberOfLines={1}>
+                                {participant.user?.first_name} {participant.user?.last_name}
+                              </Text>
+                              {participant.role === 'creator' && (
+                                <View style={styles.creatorBadge}>
+                                  <Text style={styles.creatorBadgeText}>Creator</Text>
+                                </View>
+                              )}
+                            </View>
+                            <Text style={styles.participantUsername} numberOfLines={1}>
+                              @{participant.user?.username}
+                            </Text>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <View style={styles.emptyParticipants}>
+                      <Icon name="people-outline" size={48} color={colors.gray[400]} />
+                      <Text style={styles.emptyParticipantsText}>No participants yet</Text>
+                    </View>
+                  )}
+                </View>
+              </ScrollView>
+            ) : tripId ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={colors.primary[500]} />
+                <Text style={styles.loadingText}>Loading trip info...</Text>
+              </View>
+            ) : (
+              <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>No trip information available</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+    )}
+    </>
   );
 };
 
@@ -327,6 +539,13 @@ const styles = StyleSheet.create({
     color: colors.text.white,
   },
   otherMessageText: {
+    color: colors.text.primary,
+  },
+  senderName: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.semibold,
+    marginBottom: theme.spacing.xs,
+    opacity: 0.75,
     color: colors.text.primary,
   },
   messageTimeContainer: {
@@ -417,6 +636,216 @@ const styles = StyleSheet.create({
     color: colors.text.white,
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.semibold,
+  },
+  dropdownOverlay: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    backgroundColor: colors.background.default,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.xs,
+    minWidth: 180,
+    ...theme.shadows.lg,
+    borderWidth: 1,
+    borderColor: colors.gray[200],
+  },
+  dropdownMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: theme.spacing.md,
+    gap: theme.spacing.md,
+    borderRadius: theme.borderRadius.sm,
+  },
+  dropdownMenuItemText: {
+    fontSize: theme.fontSize.md,
+    color: colors.text.primary,
+    fontWeight: theme.fontWeight.medium,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: colors.background.default,
+    width: '100%',
+    height: '100%',
+  },
+  modalBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  groupInfoModal: {
+    flex: 1,
+    backgroundColor: colors.background.default,
+    width: '100%',
+    height: '100%',
+  },
+  groupInfoHeader: {
+    paddingTop: Platform.OS === 'ios' ? 50 : theme.spacing.lg,
+    paddingBottom: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray[200],
+    backgroundColor: colors.background.default,
+  },
+  groupInfoHeaderContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  groupInfoTitle: {
+    fontSize: theme.fontSize['2xl'],
+    fontWeight: theme.fontWeight.bold,
+    color: colors.text.primary,
+  },
+  closeButton: {
+    padding: theme.spacing.xs,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: colors.gray[100],
+  },
+  groupInfoContent: {
+    flex: 1,
+  },
+  groupInfoContentContainer: {
+    padding: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
+  },
+  tripInfoCard: {
+    flexDirection: 'row',
+    backgroundColor: colors.primary[50],
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+    ...theme.shadows.sm,
+  },
+  tripIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: colors.primary[100],
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: theme.spacing.md,
+  },
+  tripInfoContent: {
+    flex: 1,
+  },
+  tripTitle: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: theme.fontWeight.bold,
+    color: colors.text.primary,
+    marginBottom: theme.spacing.xs,
+  },
+  tripDescription: {
+    fontSize: theme.fontSize.md,
+    color: colors.text.secondary,
+    marginBottom: theme.spacing.md,
+    lineHeight: 20,
+  },
+  tripMetaContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.md,
+  },
+  tripMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  tripMetaText: {
+    fontSize: theme.fontSize.sm,
+    color: colors.text.secondary,
+    fontWeight: theme.fontWeight.medium,
+  },
+  participantsSection: {
+    marginTop: theme.spacing.md,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.md,
+  },
+  sectionTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.bold,
+    color: colors.text.primary,
+  },
+  participantCountBadge: {
+    backgroundColor: colors.primary[100],
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: 4,
+    borderRadius: theme.borderRadius.full,
+  },
+  participantCountText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+    color: colors.primary[700],
+  },
+  participantsList: {
+    gap: theme.spacing.sm,
+  },
+  participantCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.default,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: colors.gray[200],
+    ...theme.shadows.sm,
+  },
+  participantAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: colors.primary[50],
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: theme.spacing.md,
+  },
+  participantInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
+  participantNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.xs,
+  },
+  participantName: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.semibold,
+    color: colors.text.primary,
+    flex: 1,
+  },
+  creatorBadge: {
+    backgroundColor: colors.primary[600],
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: 2,
+    borderRadius: theme.borderRadius.sm,
+  },
+  creatorBadgeText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.semibold,
+    color: colors.text.white,
+  },
+  participantUsername: {
+    fontSize: theme.fontSize.sm,
+    color: colors.text.secondary,
+  },
+  emptyParticipants: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: theme.spacing.xl,
+  },
+  emptyParticipantsText: {
+    fontSize: theme.fontSize.md,
+    color: colors.text.secondary,
+    marginTop: theme.spacing.md,
   },
 });
 

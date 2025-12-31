@@ -71,10 +71,7 @@ const MessagesScreen = ({ navigation }: any) => {
       return (
         <TouchableOpacity
           style={styles.conversationCard}
-          onPress={() => navigation.navigate('Trips', { 
-            screen: 'TripDetail', 
-            params: { tripId: item.trip_id } 
-          })}
+          onPress={() => navigation.navigate('TripDetail', { tripId: item.trip_id })}
         >
           <View style={styles.conversationContent}>
             <View style={styles.avatar}>

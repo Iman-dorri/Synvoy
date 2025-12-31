@@ -12,6 +12,7 @@ npm start
 
 # Run the app (in another terminal)
 npm run android
+npm run android:device
 
 
 Commands to start each component:
