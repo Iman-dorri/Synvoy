@@ -641,7 +641,7 @@ export const tripAPI = {
 export const expenseAPI = {
   // Create a new expense
   createExpense: async (tripId: string, expenseData: {
-    amount: number;
+    amount: string;
     description?: string;
     payer_user_id: string;
     participant_user_ids: string[];
